@@ -55,5 +55,5 @@ _En construcción: se completará a medida que avance el proyecto._
 
 ## Integrantes
 
-- _Nombre 1_
-- _Nombre 2_
+- Edison Torres
+- Juan Guaman
