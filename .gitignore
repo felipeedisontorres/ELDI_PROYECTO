@@ -27,3 +27,15 @@ __pycache__/
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Proyecto de Vivado creado con vivado/configurar_proyecto.tcl
+vivado/proyecto/
+*.xpr
+*.wdb
+xsim.dir/
+webtalk*
+usage_statistics_webtalk.*
+sim/build/
+sim/full/out_*.hex
+sim/full/out_*.png
+python/resultados/
