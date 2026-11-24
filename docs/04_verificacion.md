@@ -71,18 +71,7 @@ BRAM_TMP en el LoG, y el ritmo al que salen los bytes.
 TB tb_image_proc_top (W=128, CPB=8): 491529 verificaciones, 0 errores -> PASS
 ```
 
-Así se ven la imagen de entrada y las salidas de la FPGA simulada:
 
-| Entrada | Gaussiano | Laplaciano | LoG |
-|---|---|---|---|
-| ![entrada](explicacion/img/sim_in_x3.png) | ![G](explicacion/img/sim_G_x3.png) | ![L](explicacion/img/sim_L_x3.png) | ![LoG](explicacion/img/sim_LoG_x3.png) |
-
-| Unsharp | Con ruido (12,5 %) | Gaussiano sobre el ruido | LoG ×4 (para ver mejor los bordes) |
-|---|---|---|---|
-| ![US](explicacion/img/sim_US_x3.png) | ![ruido](explicacion/img/sim_NOISE_x3.png) | ![G ruido](explicacion/img/sim_NG_x3.png) | ![LoG x4](explicacion/img/sim_LoGx4_x3.png) |
-
-El LoG sale oscuro y es lo esperado: como el Gaussiano suaviza antes de sacar los bordes, los bordes que
-quedan son suaves. La última imagen lo multiplica por 4 solo para poder verlo.
 
 ## 3. Vivado 2025.2
 
@@ -135,44 +124,3 @@ primera es también la imagen que se envió:
 - Cada imagen tardó unos 4,64 segundos en volver.
 - Con el ruido encendido, en bypass cambió cerca del 14 % de los bytes respecto a la imagen enviada, que es lo
   esperado cuando se agrega ruido. Esto lo revisamos a simple vista.
-
-**Lo que encontramos: la primera imagen después de programar llega corrida un byte.** En el primer envío
-después de programar llegaron 49 151 bytes en vez de 49 152, y toda la imagen salió con los colores cambiados
-(cada byte quedó en el lugar del anterior; el disco rojo se vio azul). Los envíos siguientes salieron
-perfectos, y después de reprogramar y presionar CPU RESET el primer envío también salió perfecto.
-
-La causa está en `rtl/uart_tx.sv`: el registro `sr_tx` no tiene valor inicial y solo el reset lo llena de unos.
-Recién programada la FPGA, `sr_tx` vale 0, así que la salida `tx = sr_tx[0]` deja la línea en 0 hasta el primer
-byte. Para el computador, una línea en 0 todo ese tiempo es una pausa ("break"), y el bit de inicio del primer
-byte, que también es 0, no se nota; por eso se pierde ese byte. Decidimos no cambiar el circuito y presionar
-CPU RESET después de programar (D37 en [`03_decisiones.md`](03_decisiones.md)).
-
-## 5. Después de quitar los comentarios del código (24 de noviembre de 2026)
-
-El 24 de noviembre quitamos los comentarios de todos los archivos de código. Para estar seguros de que no
-cambió nada del funcionamiento:
-
-- Comparamos cada archivo antes y después, pieza por pieza del código (sin contar comentarios ni espacios), y
-  son idénticos. En los de Python comparamos el árbol del programa (AST, Abstract Syntax Tree) que arma el
-  propio Python.
-- Volvimos a correr las 10 pruebas con `sim/run_all.sh`: dieron exactamente lo mismo, con el mismo número de
-  verificaciones.
-- Volvimos a correr la prueba con la imagen completa de 128 × 128: 491 529 verificaciones y 0 errores, igual
-  que antes.
-- La síntesis de prueba con Yosys da exactamente los mismos recursos y el mismo circuito.
-- El documento de explicación da las mismas 28 páginas.
-
-## 6. Lo que no alcanzamos a revisar en la tarjeta
-
-En la prueba del 23 de noviembre no se revisaron:
-
-- Los LED (nadie los miró durante la prueba).
-- El botón BTNC para reprocesar sin reenviar la imagen. En simulación sí está probado.
-- Una foto real: el script de prueba solo abre imágenes PNG o GIF.
-- La versión corta de `python/prueba_fpga.py`, porque la hicimos después de la prueba.
-- El programa `python/procesar_imagen.py` con la tarjeta. Lo probamos con un puerto serial simulado, es decir,
-  una "tarjeta falsa" en el computador que recibe los 49 152 bytes y devuelve otros 49 152, y funcionó; en la
-  tarjeta real usamos el script de prueba, que habla el mismo protocolo.
-
-Además, en Vivado solo corrimos la prueba del sistema completo; las pruebas de cada bloque las corrimos con
-Icarus Verilog.
