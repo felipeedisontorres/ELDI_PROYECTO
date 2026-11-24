@@ -1,12 +1,37 @@
-# Decisiones de diseño (D1–D36)
+# Decisiones de diseño (D1–D37)
 
-Cada decisión tiene las alternativas que descartamos, el motivo y el requisito que cumple
-(ver [`01_requisitos.md`](01_requisitos.md)). Las decisiones que una versión posterior reemplazó se dejan
-tachadas para que se vea cómo evolucionó el diseño.
+Aquí está cada decisión que tomamos durante el proyecto: qué escogimos, qué otras opciones había, por qué
+descartamos esas opciones y qué requisito se cumple con eso (los requisitos están en
+[`01_requisitos.md`](01_requisitos.md)). Las decisiones que una versión posterior reemplazó se dejan tachadas,
+para que se vea cómo fue cambiando el diseño.
 
-Base de todo el diseño: la guía del profesor `5_Implementacion_Operaciones_Puntuales.pdf` (datapath con
-anchos de bus, constantes, comparadores + MUX para saturar y líneas punteadas para las etapas de registro)
-y la retroalimentación R-F01 (la matemática va en la FPGA; Python solo carga, envía, recibe y muestra).
+Todo el diseño se apoya en dos cosas: la guía del profesor `5_Implementacion_Operaciones_Puntuales.pdf`, de
+donde sacamos la forma de dibujar el camino de datos (con el ancho de cada bus, las constantes, comparadores con
+multiplexores para saturar y líneas punteadas para las etapas de registro), y la indicación R-F01 del profesor:
+la matemática va en la FPGA y Python solo abre, envía, recibe y muestra la imagen.
+
+## Las decisiones más importantes, en pocas palabras
+
+- **Un byte a la vez (D23).** La FPGA procesa un color de un píxel por vez, en el mismo orden en que llegan y
+  salen los bytes por el cable. El cable es lo lento, así que procesar más rápido no se notaría, y así el
+  circuito queda más pequeño.
+- **Una sola máquina para todos los filtros (D25).** Cada filtro es una tabla de 9 pesos guardada en una ROM
+  (memoria de solo lectura). El mismo multiplicador y el mismo sumador sirven para los cinco modos; solo cambia
+  la tabla.
+- **Los vecinos se leen uno por uno (D10).** Para cada byte se leen sus 9 vecinos de la memoria en 12 ciclos de
+  reloj. Es más lento que leerlos todos juntos, pero más fácil de entender y de probar, y sigue sobrando tiempo.
+- **Bordes repetidos (D1, D28).** Si un vecino cae fuera de la imagen, se usa el píxel del borde. Así no salen
+  marcos oscuros ni bordes falsos.
+- **Ruido hecho en la FPGA (D4, D31).** Un LFSR (Linear Feedback Shift Register) genera números que parecen al
+  azar y decide qué píxeles se vuelven blancos o negros. Así cumplimos el requisito del ruido sin que Python
+  haga cuentas.
+- **Sin cabecera ni bytes extra (D17).** Se mandan exactamente los 49 152 bytes de la imagen. Si alguna vez se
+  pierde uno, se presiona CPU RESET.
+- **Un registro más para cumplir los tiempos (D36).** En Vivado vimos que el camino memoria → multiplicador →
+  sumador era muy largo para 100 MHz; con un registro en la mitad, el diseño cumple.
+- **CPU RESET después de programar (D37).** En la prueba con la tarjeta, la primera imagen después de programar
+  llegó corrida un byte. Con un reset después de programar no pasa, y preferimos no cambiar el circuito tan
+  cerca de la entrega.
 
 ## Historial de versiones
 
@@ -17,6 +42,7 @@ y la retroalimentación R-F01 (la matemática va en la FPGA; Python solo carga, 
 | v3 | 10-nov | Sin sincronizadores, sin antirrebote, sin cabecera ni timeout, 2 BRAM en vez de 3, sin los estados RECV y SEND (D15–D22) | R-F03: el diseño tenía cosas de más |
 | v4 | 17-nov | Camino de datos de 1 byte, kernels en ROM con un multiplicador, un solo contador de posición, FSM de 3 estados, esquemático con todos los cables dibujados (D23–D35) | Simplificar sin perder funciones y que se vea a qué se conecta cada cosa |
 | **v4.1** | **18-nov** | Registro de segmentación antes del multiplicador (D36) | En Vivado la v4 no cumplía tiempos a 100 MHz |
+| Prueba en la tarjeta | 23-nov | Los cinco modos funcionan en la Nexys 4 DDR. Se agrega el procedimiento de presionar CPU RESET después de programar (D37) | La primera imagen después de programar llegaba corrida un byte |
 
 ## Decisiones vigentes y reemplazadas
 
@@ -58,6 +84,7 @@ y la retroalimentación R-F01 (la matemática va en la FPGA; Python solo carga, 
 | D34 | **Esquemático v4**: una hoja A1 con todos los cables dibujados (sin etiquetas que entran y salen), puntos en las uniones, saltos en los cruces y peines de reloj y reset. 8 MUX: MUX_BUSY, MUX_RUIDO, MUX_SRC, MUX_ROW, MUX_COL, MUX_A, MUX_B y MUX_SAT | Etiquetas de red (v3) | Que se vea a qué se conecta cada cosa | R-G06 |
 | D35 | LED = {state, 000, mode} | — | Extra de depuración | R-G04 |
 | **D36** | **Registro de segmentación en el MAC (v4.1)**: REG_PIX y REG_W registran el píxel (salida de MUX_SRC) y el peso antes del multiplicador; TAP cuenta 0..11 (`at11`), ROM_OFF taps 9–11 = centro; el resultado está listo en el tap 11 (12 ciclos por byte) | Bajar el reloj (requiere MMCM, fuera del curso) / multiplicador sin registros (margen dudoso) | En Vivado la v4 no cumplía tiempos: camino BRAM → multiplicador → sumador → ACC = 11,35 ns > 10 ns (WNS −1,669 ns). Con el registro: WNS +2,112 ns | R-P1 |
+| **D37** | **Primera imagen después de programar: no cambiamos el circuito y se presiona CPU RESET después de programar** (está en el README) | Darle un valor inicial al registro (`logic [9:0] sr_tx = '1;`; habría que revisar si los valores iniciales se vieron en el curso y volver a sintetizar) / un generador de reset al encender (más hardware) | Sin reset, `sr_tx` arranca en 0 y deja la línea de salida en 0 hasta el primer envío, así que el computador no ve el bit de inicio del primer byte y lo pierde. Con el reset todo funciona desde la primera imagen; el mismo reset pone también la semilla del LFSR (0xACE1) y los demás registros en su valor inicial. La entrega era el 25-nov | R-P2 |
 
 ## Diferencias de comportamiento entre v3 y v4
 
@@ -74,6 +101,6 @@ y la retroalimentación R-F01 (la matemática va en la FPGA; Python solo carga, 
 | SW[2] | Bypass (devuelve la imagen sin filtrar, con ruido si está activo) |
 | SW[4:3] | Densidad de ruido: 00 sin ruido · 01 6,25 % · 10 12,5 % · 11 18,75 % |
 | BTNC | Reprocesar la imagen guardada con el modo actual, sin reenviarla |
-| CPU_RESETN | Reset (también para resincronizar si se pierde un byte) |
+| CPU_RESETN | Reset. Se presiona siempre después de programar (D37) y también si se pierde un byte |
 | LED[2:0] | MODE |
 | LED[7:6] | STATE (00 IDLE, 01 P1, 10 P2) |

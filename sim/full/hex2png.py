@@ -1,18 +1,11 @@
 #!/usr/bin/env python3
-"""Convierte imagenes .hex (49 152 lineas, un byte por linea, orden R,G,B fila por fila)
-a .png, y una imagen .png/.jpg cualquiera a img_in.hex de 128 x 128.
-
-Uso:
-    python3 hex2png.py out_G.hex            -> out_G.png
-    python3 hex2png.py --to-hex foto.jpg    -> img_in.hex (redimensionada a 128 x 128)
-
-Solo sirve para ver o preparar las imagenes de la simulacion: no hace ningun filtrado
-(toda la matematica esta en la FPGA, R-F01). Requiere Pillow (pip install pillow).
-"""
 import sys
 from PIL import Image
 
 W = 128
+USO = """Uso:
+    python3 hex2png.py out_G.hex            -> out_G.png
+    python3 hex2png.py --to-hex foto.jpg    -> img_in.hex (128 x 128)"""
 
 
 def hex_to_png(path):
@@ -39,4 +32,4 @@ if __name__ == '__main__':
         for p in sys.argv[1:]:
             hex_to_png(p)
     else:
-        print(__doc__)
+        print(USO)

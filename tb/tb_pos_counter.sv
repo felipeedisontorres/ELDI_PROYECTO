@@ -1,9 +1,3 @@
-// ============================================================================
-// tb_pos_counter: testbench autoverificable del contador de posicion (bloque 3)
-// Instancias con LOG_W = 7 (128 x 128) y LOG_W = 3 (8 x 8). Enable aleatorio.
-// Casos: secuencia R,G,B -> columna -> fila; fin solo al avanzar desde (2, W-1, W-1);
-// vuelta a (0,0,0); en = 0 congela; dos barridos completos.
-// ============================================================================
 `timescale 1ns/1ps
 module tb_pos_counter;
     logic clk = 0, reset = 1, en = 0;
@@ -19,11 +13,11 @@ module tb_pos_counter;
     always #5 clk = ~clk;
 
     integer errors = 0, checks = 0;
-    integer m7 = 0, m3 = 0;                      // modelo: indice lineal del byte
+    integer m7 = 0, m3 = 0;
     integer nlast7 = 0, nlast3 = 0;
 
     always @(negedge clk) begin
-        #1;                                       // en ya cambio en este flanco
+        #1;
         if (!reset) begin
             checks = checks + 2;
             if (row7 !== m7 / 384 || col7 !== (m7 / 3) % 128 || ch7 !== m7 % 3 ||
@@ -55,7 +49,7 @@ module tb_pos_counter;
         reset = 0;
         for (k = 0; k < 2*49152*2 + 37; k = k + 1) begin
             @(negedge clk);
-            en = ($urandom % 4) != 0;            // 75 % de los ciclos
+            en = ($urandom % 4) != 0;
         end
         @(negedge clk); en = 0;
         repeat (3) @(negedge clk);

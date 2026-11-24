@@ -1,10 +1,3 @@
-// ============================================================================
-// tb_tap_seq: testbench autoverificable del secuenciador y la direccion del
-// vecino (bloque 5). EXHAUSTIVO: todas las filas y columnas de 128 x 128 (las
-// 4 esquinas y los 4 bordes incluidos), los 3 canales y los 12 taps.
-// Tambien: TAP cuenta 0..11, se queda en 11 hasta go, go lo devuelve a 0
-// desde cualquier valor y en IDLE no cuenta.
-// ============================================================================
 `timescale 1ns/1ps
 module tb_tap_seq;
     localparam int LOG_W = 7;
@@ -27,7 +20,6 @@ module tb_tap_seq;
         clampi = (v < 0) ? 0 : (v > W-1) ? W-1 : v;
     endfunction
 
-    // referencia: offsets del tap (orden de barrido; 9, 10 y 11 = centro)
     integer edr, edc, er, ec;
     task automatic check_addr(input integer t);
         begin
@@ -51,22 +43,20 @@ module tb_tap_seq;
         for (r = 0; r < W; r = r + 1)
             for (c = 0; c < W; c = c + 1) begin
                 row = r; col = c; ch = $urandom % 3;
-                go = 1; @(negedge clk);           // TAP <- 0
+                go = 1; @(negedge clk);
                 go = 0;
                 for (t = 0; t <= 11; t = t + 1) begin
                     #1 check_addr(t);
                     @(negedge clk);
                 end
-                hold = $urandom % 4;              // se queda en 11
+                hold = $urandom % 4;
                 repeat (hold) begin #1 check_addr(11); @(negedge clk); end
             end
-        // go en medio de la cuenta lo devuelve a 0
         go = 1; @(negedge clk); go = 0;
         repeat (5) @(negedge clk);
         go = 1; @(negedge clk); go = 0; #1;
         checks = checks + 1;
         if (tap !== 4'd0) begin errors = errors + 1; $display("ERROR: go no borra TAP"); end
-        // en IDLE el TAP no cuenta
         idle = 1;
         repeat (20) @(negedge clk);
         #1 checks = checks + 1;

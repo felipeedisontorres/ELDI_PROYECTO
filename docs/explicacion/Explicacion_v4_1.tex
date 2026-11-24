@@ -58,7 +58,6 @@
 \tableofcontents
 \clearpage
 
-% =====================================================================
 \section{Qué cambió respecto a la versión v3 y por qué}
 
 La versión v3 (ver \texttt{docs/03\_decisiones.md}) procesaba un píxel completo de 24\,bits por vez, con tres carriles idénticos (R, G y B), un carril aparte para el Unsharp, un multiplexor de salida de 24\,bits, un ensamblador de píxeles y un multiplexor de bytes para la transmisión. En total tenía 15 tipos de multiplexor (M1–M15) y 27 instancias. La v4 parte de una observación: \textbf{la UART es el cuello de botella}. Transmitir la imagen tarda 4,27\,s; calcular toda la imagen tarda unos pocos milisegundos. Hacer el cálculo más rápido no se nota; hacerlo más simple sí se nota en el esquemático, en la verificación y en la sustentación.
@@ -98,7 +97,6 @@ Esquemático & Pestañas (etiquetas) que entran y salen & \textbf{Cables dibujad
 \end{itemize}
 \end{ojo}
 
-% =====================================================================
 \section{Cómo funciona el sistema completo}
 
 \subsection{Lo que ve el usuario}
@@ -160,7 +158,6 @@ La figura~\ref{fig:esq} muestra la hoja completa (el archivo \texttt{esquematico
 \item Las compuertas con la marca \textbf{ctrl} pertenecen a la unidad de control, pero están dibujadas junto al bloque que usa su salida para que el cable sea corto.
 \end{itemize}
 
-% =====================================================================
 \section{Tabla de conexiones (de dónde sale y a dónde llega cada señal)}
 Esta tabla es el ``índice'' del esquemático: permite comprobar que cada señal tiene un único origen y todos sus destinos dibujados.
 
@@ -230,7 +227,6 @@ two\_pass & 1 & decodificador & FSM \\
 \end{longtable}
 }
 
-% =====================================================================
 \section{Bloque por bloque}
 
 \subsection{Bloque 1 — \texorpdfstring{\texttt{uart\_rx}}{uart\_rx}: receptor UART 8N1}
@@ -440,7 +436,6 @@ En la primera pasada del LoG no se transmite, así que \sig{tx\_busy} = 0 y \sig
 
 \textbf{Verificación (\texttt{tb\_ctrl}):} los 8 valores de \bus{SW[2:0]}, arranque con \sig{fin} y con \bus{BTNC}, \bus{BTNC} y switches ignorados en P1/P2, MODE congelado, la segunda pasada solo en LoG y todas las salidas contra la tabla. PASS.
 
-% =====================================================================
 \section{Recorrido de un byte, ciclo a ciclo}
 
 Este ejemplo sale de la simulación del sistema completo (imagen de 4\,×\,4, Gaussiano). Se calcula el canal R del píxel (0, 0), que está en una esquina: los vecinos de arriba y de la izquierda no existen y se replican.
@@ -484,7 +479,6 @@ Resultado: $y = \lfloor 1148/16 \rfloor = 71$. La figura~\ref{fig:wmac} muestra 
 \caption{Recepción del byte 0x11 (simulación con 8 ciclos por bit en lugar de 868, D14): se muestrea a mitad de cada bit; en la muestra 9 sale \sig{rx\_valid} con \bus{rx\_data} = 0x11 y se escribe en la posición (0, 0, 0).}
 \end{figure}
 
-% =====================================================================
 \section{Anchos de bus: de dónde salen}
 
 \begin{itemize}
@@ -505,7 +499,6 @@ Todas caben en $[-2^{14}, 2^{14}-1] = [-16\,384, 16\,383]$: 15 bits con signo. L
 \item \textbf{Contadores de baudios (10\,b).} $868 < 2^{10}$. \textbf{BIT\_RX y BIT\_TX (4\,b):} cuentan hasta 9 y 10. \textbf{TAP (4\,b):} hasta 11. \textbf{REG\_PIX y REG\_W (8\,b):} el mismo ancho que \bus{pix} y \bus{w}.
 \end{itemize}
 
-% =====================================================================
 \section{Verificación: qué se simuló y qué salió}
 
 Todo se simuló con Icarus Verilog 12 (\texttt{iverilog -g2012}). Cada testbench se comprueba solo: compara contra un modelo escrito en el propio testbench y termina con PASS o FAIL. El modelo de referencia de los filtros vive \emph{solo} en el testbench, no en el sistema (R-F01). El RTL además pasa \texttt{verilator --lint-only -Wall} sin advertencias. En \textbf{Vivado 2025.2} se corrió el testbench del sistema en el simulador xsim (4\,441 verificaciones, 0 errores, PASS: el mismo resultado que en Icarus) y el diseño se sintetizó, implementó y generó el bitstream (sección~\ref{sec:tiempos}). Después del cambio a v4.1 se volvieron a correr los 10 testbenches y la imagen completa.
@@ -556,7 +549,6 @@ tb\_image\_proc\_top 128×128 & 491\,529 & imagen real: los 5 modos y ruido; 49\
 \textbf{El LoG sale oscuro y es correcto.} El Gaussiano suaviza los bordes antes de derivar, así que los valores del Laplaciano son pequeños (la última imagen está multiplicada por 4 \emph{solo} en el documento para que se vea). Si en la sustentación se quiere más contraste, una opción sería escalar el resultado del LoG; hoy no se hace porque ningún requisito lo pide y cambiaría la normalización.
 \end{ojo}
 
-% =====================================================================
 \section{Implementación en Vivado 2025.2 y cierre de tiempos (v4.1)}
 \label{sec:tiempos}
 
@@ -642,7 +634,6 @@ Pines (IOB) & 18 & 18 \\
 \item \textbf{Verificación después del cambio:} los 10 testbenches pasan (\texttt{tb\_tap\_seq} ahora revisa 12 taps y \texttt{tb\_conv\_mac} revisa el resultado en el tap 11), la imagen completa de 128\,×\,128 da 491\,529 verificaciones sin errores y las salidas de los cinco filtros son idénticas byte a byte a las de v4.
 \end{itemize}
 
-% =====================================================================
 \section{Trazabilidad de requisitos}
 
 \begin{center}
@@ -663,7 +654,6 @@ R-G06 & Esquemático detallado: memorias, FSM, registros, sumador, multiplicador
 \end{tabularx}
 \end{center}
 
-% =====================================================================
 \section{Limitaciones, riesgos y pendientes}
 \begin{itemize}
 \item \textbf{Sin sincronizadores (D15).} Funciona con la justificación de un solo FF de decisión, pero es una decisión discutible y está entre las preguntas abiertas al profesor. \bus{SW[2:0]} sí llega a 3 FF (MODE); como los switches no se mueven al pulsar \bus{BTNC}, el riesgo es despreciable.
@@ -674,7 +664,6 @@ R-G06 & Esquemático detallado: memorias, FSM, registros, sumador, multiplicador
 \item \textbf{Código anterior.} La v4 se escribió desde cero a partir de las decisiones de diseño (\texttt{docs/03\_decisiones.md}). Los módulos de v3 (\texttt{pixel\_assembler}, \texttt{addr\_gen}, \texttt{conv\_engine}, \texttt{conv\_lane}, \texttt{unsharp\_lane}, \texttt{tx\_path}, \texttt{ctrl\_fsm}) se reemplazan por los de v4; el protocolo con el PC no cambia.
 \end{itemize}
 
-% =====================================================================
 \section{Preguntas para preparar la sustentación}
 Las respuestas están en el anexo A.
 \begin{enumerate}

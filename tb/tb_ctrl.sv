@@ -1,9 +1,3 @@
-// ============================================================================
-// tb_ctrl: testbench autoverificable de la unidad de control (bloque 9)
-// Casos: los 8 valores de SW[2:0]; transiciones IDLE->P1->(P2)->IDLE con fin;
-// arranque con BTNC; BTNC ignorado en P1/P2; MODE congelado fuera de IDLE;
-// salidas del decodificador contra la tabla de verdad; P1/P2 esperan fin.
-// ============================================================================
 `timescale 1ns/1ps
 module tb_ctrl;
     logic clk = 0, reset = 1, btnc = 0, fin = 0;
@@ -33,8 +27,7 @@ module tb_ctrl;
         end
     endtask
 
-    // ksel / absm esperados en P1 segun MODE
-    function automatic [2:0] p1_dec(input [2:0] md);   // {ksel, absm}
+    function automatic [2:0] p1_dec(input [2:0] md);
         if (md[2])                 p1_dec = {2'b10, 1'b0};
         else case (md[1:0])
             2'b00: p1_dec = {2'b00, 1'b0};
@@ -53,15 +46,12 @@ module tb_ctrl;
         expect_out(2'b00, 3'b000, 2'b00, 0, 0, 0);
         for (use_btn = 0; use_btn < 2; use_btn = use_btn + 1)
             for (m = 0; m < 8; m = m + 1) begin
-                // en IDLE, MODE sigue a los switches
                 sw_mode = m; @(negedge clk);
                 expect_out(2'b00, m[2:0], 2'b00, 0, 0, 0);
-                // arranque: fin (imagen recibida) o BTNC
                 if (use_btn) btnc = 1; else fin = 1;
                 @(negedge clk); btnc = 0; fin = 0;
                 d = p1_dec(m[2:0]);
                 expect_out(2'b01, m[2:0], d[2:1], d[0], 0, (m == 2));
-                // en P1 los switches y BTNC no hacen nada
                 sw_mode = ~m[2:0]; btnc = 1;
                 for (w = 0; w < 5; w = w + 1) begin
                     @(negedge clk);
@@ -69,7 +59,7 @@ module tb_ctrl;
                 end
                 btnc = 0;
                 fin = 1; @(negedge clk); fin = 0;
-                if (m == 2) begin                  // LoG: segunda pasada
+                if (m == 2) begin
                     expect_out(2'b10, 3'b010, 2'b01, 1, 1, 0);
                     btnc = 1;
                     for (w = 0; w < 5; w = w + 1) begin
@@ -79,9 +69,9 @@ module tb_ctrl;
                     btnc = 0;
                     fin = 1; @(negedge clk); fin = 0;
                 end
-                expect_out(2'b00, m[2:0], 2'b00, 0, 0, 0);    // de vuelta en IDLE
+                expect_out(2'b00, m[2:0], 2'b00, 0, 0, 0);
                 @(negedge clk);
-                expect_out(2'b00, ~m[2:0], 2'b00, 0, 0, 0);   // MODE vuelve a seguir SW
+                expect_out(2'b00, ~m[2:0], 2'b00, 0, 0, 0);
             end
         $display("TB tb_ctrl: %0d verificaciones, %0d errores -> %s",
                  checks, errors, (errors == 0) ? "PASS" : "FAIL");

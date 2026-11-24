@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-"""Lee wave.vcd (Icarus) y dibuja formas de onda para el informe.
-Uso: python3 plot_wave.py wave.vcd <carpeta_de_salida>  ->  wave_rx.png y wave_mac.png"""
 import sys
 import matplotlib
 matplotlib.use('Agg')
@@ -58,7 +55,6 @@ def to_int(v, signed=False, w=1):
 
 
 def plot(sigs, rows, t0, t1, fn, title, period=10000, mark=None):
-    """rows: lista de (nombre_mostrado, nombre_vcd, formato). formato: 'bit', 'dec', 'sdec', 'hex', 'rc'"""
     n = len(rows)
     fig, ax = plt.subplots(figsize=(13, 0.52 * n + 1.1))
     H = 0.62
@@ -66,7 +62,6 @@ def plot(sigs, rows, t0, t1, fn, title, period=10000, mark=None):
         y = n - 1 - i
         s = sigs[nm]
         ch = [(t, v) for t, v in s['ch']]
-        # puntos de cambio dentro de la ventana
         times = [t0] + [t for t, v in ch if t0 < t < t1] + [t1]
         ax.text(t0 - (t1 - t0) * 0.008, y + H / 2, lab, ha='right', va='center', fontsize=9,
                 family='DejaVu Sans', color='#1f4e9c' if s['w'] == 1 else '#000')
@@ -88,13 +83,12 @@ def plot(sigs, rows, t0, t1, fn, title, period=10000, mark=None):
                     txt = 'x'
                 elif fmt == 'hex':
                     txt = f'{x:02X}'
-                elif fmt == 'rc':           # {row, col, ch} con LOG_W = 2 -> 6 b
+                elif fmt == 'rc':
                     txt = f'{x >> 4},{(x >> 2) & 3},{x & 3}'
                 else:
                     txt = str(x)
                 if (b - a) > period * 0.75:
                     ax.text((a + b) / 2, y + H / 2, txt, ha='center', va='center', fontsize=7.5)
-    # rejilla de reloj
     k = (t0 // period) * period
     while k <= t1:
         ax.axvline(k, color='#e6e6e6', lw=0.5, zorder=0)
@@ -122,7 +116,6 @@ if __name__ == '__main__':
     vcd, outdir = sys.argv[1], sys.argv[2]
     S = parse_vcd(vcd)
     P = 'tb_wave.dut.'
-    # ---------------- recepcion del primer byte (0x11) ----------------
     t_start = [t for t, v in S['tb_wave.UART_TXD_IN']['ch'] if v == '0'][0]
     rows = [('UART_TXD_IN (rx)', 'tb_wave.UART_TXD_IN', 'bit'),
             ('rx_busy', P + 'u_rx.rx_busy', 'bit'),
@@ -136,7 +129,6 @@ if __name__ == '__main__':
     plot(S, rows, t_start - 20000, t_start + 860000, f'{outdir}/wave_rx.png',
          'Recepción del primer byte (0x11) con CLKS_PER_BIT = 8: se muestrea a mitad de cada bit (sample)',
          mark=[(t_start, 'flanco de inicio')])
-    # ---------------- calculo de los primeros bytes en P1 ----------------
     st = S[P + 'state']['ch']
     t_p1 = [t for t, v in st if v.lstrip('b').endswith('01') or v == 'b1' or v == '1'][0]
     rows = [('state', P + 'state', 'dec'),

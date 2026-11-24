@@ -1,18 +1,13 @@
-# -*- coding: utf-8 -*-
-"""Mini-libreria para dibujar el esquematico RTL en SVG (unidades: mm).
-Notacion de la guia del profesor: operadores en circulos grises, constantes en
-rectangulos grises, MUX trapezoidales, anchos de bus con barra inclinada,
-puertos de la FPGA como pentagonos. Todas las conexiones son cables dibujados."""
 import math
 
-C_BUS = '#000000'      # datos
-C_SIG = '#1f4e9c'      # control / estado
-C_CLK = '#8c8c8c'      # reloj
-C_RST = '#b07cc6'      # reset
+C_BUS = '#000000'
+C_SIG = '#1f4e9c'
+C_CLK = '#8c8c8c'
+C_RST = '#b07cc6'
 GRAY = '#d4d4d4'
-F_SEQ = '#fff2cc'      # registros / contadores / FSM
-F_MEM = '#dae8fc'      # memorias
-F_ROM = '#e8dcf2'      # ROM / tablas / decodificador
+F_SEQ = '#fff2cc'
+F_MEM = '#dae8fc'
+F_ROM = '#e8dcf2'
 FONT = 'DejaVu Sans'
 
 
@@ -21,7 +16,6 @@ def esc(t):
 
 
 class Pin(tuple):
-    """Punto (x, y) con nombre."""
     def __new__(cls, x, y):
         return tuple.__new__(cls, (x, y))
 
@@ -38,9 +32,8 @@ class Sheet:
     def __init__(self, w, h):
         self.w, self.h = w, h
         self.L = {k: [] for k in ('bg', 'frame', 'wire', 'elem', 'dot', 'text')}
-        self.wires = []          # (pts, color, sw, net)
+        self.wires = []
 
-    # ------------------------------------------------------------ basicos
     def add(self, layer, s):
         self.L[layer].append(s)
 
@@ -73,13 +66,9 @@ class Sheet:
         self.add(layer, f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r:.2f}" fill="{fill}" '
                         f'stroke="{stroke}" stroke-width="{sw}"/>')
 
-    # ------------------------------------------------------------ cables
     def wire(self, pts, kind='bus', width=None, wpos=0, wfrac=0.5, arrow=True, name=None,
              npos=0, nfrac=None, nside='above', ndx=0, ndy=0, nsize=2.4, dots=(), wdx=0, wdy=0,
              net=None):
-        """pts: lista de puntos. kind: bus/sig/clk/rst. width: numero de bits (barra).
-        wpos: indice del segmento con la barra; wfrac: posicion en el segmento.
-        name: etiqueta del nombre de la senal (sobre el cable)."""
         col = {'bus': C_BUS, 'sig': C_SIG, 'clk': C_CLK, 'rst': C_RST, 'busc': C_SIG}[kind]
         sw = {'bus': 0.55, 'sig': 0.3, 'clk': 0.22, 'rst': 0.22, 'busc': 0.55}[kind]
         pts = [tuple(map(float, q)) for q in pts]
@@ -94,8 +83,7 @@ class Sheet:
         if name:
             a, b = pts[npos], pts[npos + 1]
             if nfrac is None:
-                # cerca del inicio del segmento
-                if abs(b[1] - a[1]) < 1e-6:     # horizontal
+                if abs(b[1] - a[1]) < 1e-6:
                     x = a[0] + (3 if b[0] > a[0] else -3)
                     y = a[1]
                 else:
@@ -136,7 +124,6 @@ class Sheet:
     def dot(self, x, y, color='#000'):
         self.add('dot', f'<circle cx="{x:.2f}" cy="{y:.2f}" r="0.75" fill="{color}"/>')
 
-    # ------------------------------------------------------------ elementos
     def frame(self, x, y, w, h, title, num, tdx=0):
         self.rect(x, y, w, h, fill='#fbfbfb', stroke='#7a7a7a', sw=0.4, dash='2.2,1.2', layer='frame')
         bx = x + 2 + tdx
@@ -180,9 +167,6 @@ class Sheet:
         return P
 
     def gate(self, kind, x, y, n=2, h=None, name=None, rot='r'):
-        """kind: and, or, nor, not, xor. (x, y) = esquina superior izquierda del cuerpo SIN rotar.
-        rot: 'r' salida a la derecha (normal), 'l' izquierda, 'u' arriba, 'd' abajo.
-        Con rot != 'r' el cuerpo gira alrededor de su centro."""
         if kind == 'not':
             w, hh = 5.5, 5.0
         else:
@@ -199,7 +183,7 @@ class Sheet:
                 return Pin(cx - dx, cy - dy)
             if rot == 'd':
                 return Pin(cx - dy, cy + dx)
-            return Pin(cx + dy, cy - dx)       # 'u'
+            return Pin(cx + dy, cy - dx)
         g = [f'<g transform="rotate({ang} {cx:.2f} {cy:.2f})">'] if ang else []
         body = []
         if kind == 'not':
@@ -253,8 +237,6 @@ class Sheet:
 
     def box(self, x, y, w, h, title, sub=None, fill=F_SEQ, pins=(), clk=None, rst=None,
             tsize=3.0, ssize=2.3, title_dy=0):
-        """pins: lista de (clave, lado, frac, etiqueta). lado: l r t b.
-        clk / rst: (lado, frac) del pin de reloj / reset."""
         self.rect(x, y, w, h, fill=fill, sw=0.45)
         ty = y + h / 2 + (0 if sub else 1.0) + title_dy
         if sub:
@@ -326,10 +308,9 @@ class Sheet:
         self.text(x + w / 2 + 0.3, y + 0.95, name, size=size, anchor='middle', weight='bold')
         return Pin(x, y)
 
-    # ------------------------------------------------------------ saltos en cruces
     def _render_wires(self):
         R = 1.1
-        segs = []   # verticales: (x, y1, y2, net)
+        segs = []
         for pts, col, sw, net in self.wires:
             for a, b in zip(pts, pts[1:]):
                 if abs(a[0] - b[0]) < 0.05 and abs(a[1] - b[1]) > 0.05:
@@ -338,7 +319,7 @@ class Sheet:
         for pts, col, sw, net in self.wires:
             d = f'M{pts[0][0]:.2f},{pts[0][1]:.2f}'
             for a, b in zip(pts, pts[1:]):
-                if abs(a[1] - b[1]) < 0.05 and abs(a[0] - b[0]) > 0.05:   # horizontal
+                if abs(a[1] - b[1]) < 0.05 and abs(a[0] - b[0]) > 0.05:
                     y = a[1]
                     lo, hi = min(a[0], b[0]), max(a[0], b[0])
                     xs = sorted({round(x, 3) for x, y1, y2, n in segs
@@ -359,7 +340,6 @@ class Sheet:
                        f'stroke-linejoin="miter"/>')
         return out
 
-    # ------------------------------------------------------------ salida
     def svg(self):
         out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{self.w}mm" height="{self.h}mm" '
                f'viewBox="0 0 {self.w} {self.h}">',

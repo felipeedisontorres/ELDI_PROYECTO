@@ -1,17 +1,21 @@
 # Uso de herramientas de IA (R-G08)
 
-El curso pide mencionar y documentar todo uso de IA: cómo se usó, con qué propósito y qué código generó.
-El profesor nos autorizó a usar código hecho con IA siempre que el equipo entienda el código completo (R-G05).
-Todo el uso de IA del proyecto está documentado en este archivo; los demás archivos del repositorio no
-llevan comentarios de autoría. La tabla de la sección 4 dice, archivo por archivo, qué hizo la IA.
+El curso pide contar y documentar todo uso de IA (inteligencia artificial): cómo la usamos, para qué y qué
+código generó. El profesor nos autorizó a usar código hecho con IA siempre que el equipo entienda todo el
+código (R-G05).
+
+Todo el uso de IA del proyecto está en este archivo. El código no lleva comentarios, así que la tabla de la
+sección 4 es la que dice, archivo por archivo, qué hizo la IA y qué hicimos nosotros.
 
 ## 1. Herramienta
 
 - **IA:** Claude (Anthropic), en un proyecto de claude.ai llamado "ELDI-FINAL".
 - **Material que le dimos:** los requisitos del curso (`Projects-Proposals.pdf`, `Requrimientos Minimos parte 2.pdf`),
   las diapositivas del curso (1 a 10) y la guía del profesor `5_Implementacion_Operaciones_Puntuales.pdf`.
-- **Acceso al computador:** en las sesiones del 17 y 18 de noviembre le dimos permiso para manejar el computador
-  de Edison (instalar Vivado y las librerías de Python, y ejecutar comandos en la consola Tcl de Vivado).
+- **Acceso al computador:** en las sesiones del 17, 18, 23 y 24 de noviembre le dimos permiso para usar el
+  computador de Edison: instalar Vivado y las librerías de Python, ejecutar comandos en la consola Tcl de
+  Vivado, el 23 de noviembre programar la tarjeta y correr la prueba con ella, y el 24 de noviembre copiar al
+  repositorio el script y las imágenes de esa prueba.
 
 ## 2. Reglas que le pusimos
 
@@ -40,6 +44,9 @@ Le pedimos actuar como tutor y co-diseñador con estas reglas (texto completo en
 | 18-nov | Cierre de tiempos (v4.1) | Encontró en el reporte de Vivado que la v4 no cumplía tiempos y agregó el registro de segmentación (D36); actualizó el esquemático y la explicación a v4.1 | Sí |
 | 18-nov | Estudio | Explicó bloque por bloque `uart_rx` y `pos_counter` con ejemplos numéricos | No |
 | 19-nov | Repositorio | Organizó el repositorio con la versión v4.1: actualizó la documentación, corrigió comentarios desactualizados del código y reescribió el script de Vivado para que cree el proyecto desde el repositorio | Sí (ajustes menores) |
+| 23-nov | Prueba en la tarjeta | En el computador de Edison programó la tarjeta y corrió la prueba (los interruptores y botones los manejamos nosotros). Escribió la primera versión del script de prueba `prueba_fpga.py`, que enviaba una imagen generada y, solo para la prueba, comparaba la respuesta con un modelo. Encontró por qué la primera imagen después de programar llegaba corrida un byte y propuso tres soluciones; nosotros escogimos presionar CPU RESET (D37). Escribió una guía de uso paso a paso | Sí (script de prueba) |
+| 23-nov (noche) | Script de demostración | Hizo una versión corta de `prueba_fpga.py` (95 líneas, sin comentarios y sin el modelo): solo abre la imagen, la envía, recibe la respuesta y muestra las dos (R-F01). Es la que está en el repositorio | Sí |
+| 24-nov | Repositorio final | A pedido nuestro, reescribió el README y la documentación en lenguaje sencillo, agregó la prueba en la tarjeta y la decisión D37, quitó los comentarios de todo el código y agregó la versión corta de `prueba_fpga.py` (con la imagen de prueba del repositorio en vez de una ruta de nuestro computador) y las imágenes que devolvió la tarjeta. Comprobó que el código quedó igual: mismas pruebas, misma síntesis y mismo esquemático (ver `docs/04_verificacion.md`, sección 5) | Sí (solo se quitaron comentarios) |
 
 ## 4. Qué generó la IA, archivo por archivo
 
@@ -48,13 +55,16 @@ Le pedimos actuar como tutor y co-diseñador con estas reglas (texto completo en
 | `rtl/*.sv` | Escribió los 10 módulos siguiendo el esquemático v4.1 | Pidió los rediseños con la retroalimentación del profesor y debe explicar cada módulo (sección 8) |
 | `tb/*.sv` | Escribió los 10 testbenches autoverificables y el modelo de referencia dentro de `tb_image_proc_top` | Corrió la simulación del sistema en Vivado |
 | `sim/` | `run_all.sh`, `syn.ys`, `full/hex2png.py`, `wave/tb_wave.sv` y `wave/plot_wave.py` | — |
-| `constraints/*.xdc` | Copió las líneas necesarias del XDC maestro oficial de Digilent y les cambió los nombres de puerto | Debe confirmar el modelo de la tarjeta |
+| `constraints/*.xdc` | Copió las líneas necesarias del XDC maestro oficial de Digilent y les cambió los nombres de puerto | Confirmó en la prueba del 23-nov que funciona en nuestra tarjeta (Nexys 4 DDR) |
 | `vivado/configurar_proyecto.tcl` | Script que crea el proyecto de Vivado con las fuentes y la parte correcta | — |
 | `python/procesar_imagen.py` | Script que carga, envía, recibe y muestra la imagen (sin cálculos sobre los píxeles, R-F01) | Debe probarlo con la tarjeta |
 | `docs/esquematico/` | Dibujó el esquemático con un programa en Python que genera SVG (`generador/`) | Lo revisó y lo presentó en los avances |
 | `docs/explicacion/` | Escribió el documento de explicación bloque por bloque (LaTeX) y sus figuras | Lo usa para estudiar |
 | `docs/*.md` | Redactó los documentos a partir de las conversaciones y las decisiones del equipo | Tomó las decisiones y trajo la retroalimentación del profesor |
-| `README.md` | Lo redactó | — |
+| `README.md` | Lo redactó; la versión en lenguaje sencillo es del 24-nov | Pidió que fuera sencillo y sin tecnicismos |
+| Comentarios del código | Los quitó de todos los archivos de código el 24-nov, sin cambiar nada más | Lo pidió |
+| `python/prueba_fpga.py` | Escribió la versión de la prueba del 23-nov y después la versión corta para la demostración, que es la que está aquí | Manejó la tarjeta durante la prueba |
+| `docs/prueba_tarjeta/` | Copió del computador de Edison las imágenes que devolvió la tarjeta y las aumentó 3 veces para verlas mejor | Son las salidas reales de la tarjeta en nuestra prueba |
 
 ## 5. Lo que no hizo la IA
 
@@ -103,6 +113,9 @@ están resumidos.
 | Diseño v4 | Simplificar todo el esquemático sin perder funciones, dibujar cada conexión como un cable (sin etiquetas que entran y salen), hacer un PDF que explique cada bloque y simular antes de entregar |
 | Vivado | Instalar Vivado, organizar el código por secciones ("qué poner en cada espacio") e indicar paso a paso cómo cargarlo, simularlo y programar la tarjeta |
 | Estudio | Explicar bloque por bloque el código y el esquemático |
+| Prueba en la tarjeta | Conectar la tarjeta y probarla; dejar como está lo del primer byte corrido (presionar CPU RESET) y hacer una guía paso a paso para usar el proyecto desde cero |
+| Script de demostración | Hacer el script de Python más corto y sin comentarios |
+| Repositorio final | Terminar el repositorio de forma sencilla, sin tantos tecnicismos, y quitar los comentarios de todo el código |
 
 ## 7. Cómo verificamos el código generado
 
@@ -111,7 +124,10 @@ están resumidos.
 2. **Sistema completo contra un modelo de referencia:** la imagen de 128 × 128 en los 5 modos y con ruido coincide
    byte a byte con el modelo (491 529 comparaciones en Icarus; 4 441 verificaciones con la imagen de 8 × 8 en Vivado).
 3. **Vivado:** síntesis e implementación sin errores y con tiempos cumplidos a 100 MHz.
-4. **Pendiente:** prueba en la tarjeta con el script de Python.
+4. **Tarjeta (23-nov):** en una Nexys 4 DDR, los cinco modos sin ruido dieron 0 bytes distintos de 49 152
+   comparados con el modelo (ver [`docs/04_verificacion.md`](docs/04_verificacion.md), sección 4).
+5. **Después de quitar los comentarios (24-nov):** las 10 pruebas, la imagen completa, la síntesis con Yosys
+   y el esquemático dieron exactamente lo mismo que antes.
 
 ## 8. Revisión del equipo
 
