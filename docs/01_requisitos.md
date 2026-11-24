@@ -20,7 +20,7 @@ _Estado al 24 de noviembre de 2026._
 | R-G07 | Mostrar avance en cada sesión de laboratorio | Avances de los miércoles (el historial está en `03_decisiones.md`) | Continuo |
 | R-G08 | Documentar todo uso de IA: cómo, para qué y qué código generó | [`AI_USAGE.md`](../AI_USAGE.md) | ✔ |
 | R-G09 | Informe final de 6 páginas en plantilla IEEE (Institute of Electrical and Electronics Engineers), en PDF: introducción, solución y metodología, configuración experimental, resultados experimentales, conclusiones y referencias (máximo 10) | Informe aparte, en PDF | ✔ |
-| R-G10 | El proyecto debe estar en GitHub, con los dos estudiantes como colaboradores | Este repositorio | Falta confirmar en GitHub (Settings → Collaborators) que Juan esté como colaborador |
+| R-G10 | El proyecto debe estar en GitHub, con los dos estudiantes como colaboradores | Este repositorio | ✔ |
 | R-G11 | README que explique cómo reproducir el proyecto | [`README.md`](../README.md) | ✔ |
 | R-G12 | Enviar el enlace del repositorio el día antes de la evaluación | Martes 24 de noviembre | Se envía el 24 de noviembre |
 | R-G13 | Presentación oral de 10 minutos más 5 de preguntas | Miércoles 25 de noviembre | Se presenta el 25 de noviembre |
