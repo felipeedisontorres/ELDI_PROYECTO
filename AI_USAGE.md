@@ -1,11 +1,3 @@
-# Uso de herramientas de IA (R-G08)
-
-El curso pide contar y documentar todo uso de IA (inteligencia artificial): cómo la usamos, para qué y qué
-código generó. El profesor nos autorizó a usar código hecho con IA siempre que el equipo entienda todo el
-código (R-G05).
-
-Todo el uso de IA del proyecto está en este archivo. El código no lleva comentarios, así que la tabla de la
-sección 4 es la que dice, archivo por archivo, qué hizo la IA y qué hicimos nosotros.
 
 ## 1. Herramienta
 
