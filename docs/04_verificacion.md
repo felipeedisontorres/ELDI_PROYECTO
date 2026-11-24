@@ -103,14 +103,16 @@ versión 4.1 y el archivo de pines `constraints/nexys_a7_100t.xdc`. La tarjeta q
 computador, que es el puente USB-UART que trae la tarjeta.
 
 **Programa usado.** Para esta prueba usamos un script aparte, `prueba_fpga.py`, que solo usa la biblioteca
-estándar de Python, porque el Python de IDLE de ese computador no tenía pyserial, numpy ni pillow. El script
-genera una imagen de prueba de 128 × 128 (un degradado de colores, un tablero de 8 × 8, un disco y barras de
-colores), envía los 49 152 bytes, recibe la respuesta, la guarda en PNG y la muestra. Solo para esta prueba,
-el script también compara la respuesta con un modelo de los filtros escrito en Python, para saber si la tarjeta
-calcula bien. Ese modelo no forma parte del sistema: en la demostración se apaga (`VERIFICAR = False`) y Python
-solo envía, recibe y muestra la imagen (R-F01). Este script no está en el repositorio; el programa del
-repositorio, `python/procesar_imagen.py`, usa exactamente el mismo protocolo (los mismos 49 152 bytes a
-115 200 baudios).
+estándar de Python, porque el Python de IDLE de ese computador no tenía pyserial, numpy ni pillow. Esa primera
+versión generaba una imagen de prueba de 128 × 128 (un degradado de colores, un tablero de 8 × 8, un disco y
+barras de colores), enviaba los 49 152 bytes, recibía la respuesta, la guardaba en PNG y la mostraba. Solo para
+esta prueba también comparaba la respuesta con un modelo de los filtros escrito en Python, para saber si la
+tarjeta calculaba bien. Ese modelo nunca fue parte del sistema.
+
+Después de la prueba hicimos una versión corta para la demostración, que es la que está en el repositorio
+(`python/prueba_fpga.py`). Ya no tiene el modelo ni genera imágenes: solo abre una imagen de 128 × 128, la
+envía, recibe la respuesta y muestra las dos (R-F01). Usa el mismo protocolo que la versión de la prueba y que
+`python/procesar_imagen.py`: los mismos 49 152 bytes a 115 200 baudios.
 
 **Resultados sin ruido** (SW4 y SW3 en 00):
 
@@ -121,6 +123,14 @@ repositorio, `python/procesar_imagen.py`, usa exactamente el mismo protocolo (lo
 | LoG | SW1 SW0 = 10 | 0 de 49 152 |
 | Unsharp | SW1 SW0 = 11 | 0 de 49 152 |
 | Bypass | SW2 = 1 | 0 de 49 152 |
+
+Estas son las imágenes que devolvió la tarjeta, aumentadas 3 veces para verlas mejor (las originales de
+128 × 128 están en [`prueba_tarjeta/`](prueba_tarjeta)). En bypass la imagen vuelve idéntica, así que la
+primera es también la imagen que se envió:
+
+| Entrada (bypass) | Gaussiano | Laplaciano | LoG | Unsharp |
+|---|---|---|---|---|
+| ![Entrada y bypass](prueba_tarjeta/salida_bypass_x3.png) | ![Gaussiano](prueba_tarjeta/salida_gaussiano_x3.png) | ![Laplaciano](prueba_tarjeta/salida_laplaciano_x3.png) | ![LoG](prueba_tarjeta/salida_log_x3.png) | ![Unsharp](prueba_tarjeta/salida_unsharp_x3.png) |
 
 - Cada imagen tardó unos 4,64 segundos en volver.
 - Con el ruido encendido, en bypass cambió cerca del 14 % de los bytes respecto a la imagen enviada, que es lo
@@ -160,6 +170,7 @@ En la prueba del 23 de noviembre no se revisaron:
 - Los LED (nadie los miró durante la prueba).
 - El botón BTNC para reprocesar sin reenviar la imagen. En simulación sí está probado.
 - Una foto real: el script de prueba solo abre imágenes PNG o GIF.
+- La versión corta de `python/prueba_fpga.py`, porque la hicimos después de la prueba.
 - El programa `python/procesar_imagen.py` con la tarjeta. Lo probamos con un puerto serial simulado, es decir,
   una "tarjeta falsa" en el computador que recibe los 49 152 bytes y devuelve otros 49 152, y funcionó; en la
   tarjeta real usamos el script de prueba, que habla el mismo protocolo.

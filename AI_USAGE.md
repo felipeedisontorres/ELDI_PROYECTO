@@ -12,9 +12,10 @@ sección 4 es la que dice, archivo por archivo, qué hizo la IA y qué hicimos n
 - **IA:** Claude (Anthropic), en un proyecto de claude.ai llamado "ELDI-FINAL".
 - **Material que le dimos:** los requisitos del curso (`Projects-Proposals.pdf`, `Requrimientos Minimos parte 2.pdf`),
   las diapositivas del curso (1 a 10) y la guía del profesor `5_Implementacion_Operaciones_Puntuales.pdf`.
-- **Acceso al computador:** en las sesiones del 17, 18 y 23 de noviembre le dimos permiso para manejar el
+- **Acceso al computador:** en las sesiones del 17, 18, 23 y 24 de noviembre le dimos permiso para usar el
   computador de Edison: instalar Vivado y las librerías de Python, ejecutar comandos en la consola Tcl de
-  Vivado y, el 23 de noviembre, programar la tarjeta y correr la prueba con ella.
+  Vivado, el 23 de noviembre programar la tarjeta y correr la prueba con ella, y el 24 de noviembre copiar al
+  repositorio el script y las imágenes de esa prueba.
 
 ## 2. Reglas que le pusimos
 
@@ -43,8 +44,9 @@ Le pedimos actuar como tutor y co-diseñador con estas reglas (texto completo en
 | 18-nov | Cierre de tiempos (v4.1) | Encontró en el reporte de Vivado que la v4 no cumplía tiempos y agregó el registro de segmentación (D36); actualizó el esquemático y la explicación a v4.1 | Sí |
 | 18-nov | Estudio | Explicó bloque por bloque `uart_rx` y `pos_counter` con ejemplos numéricos | No |
 | 19-nov | Repositorio | Organizó el repositorio con la versión v4.1: actualizó la documentación, corrigió comentarios desactualizados del código y reescribió el script de Vivado para que cree el proyecto desde el repositorio | Sí (ajustes menores) |
-| 23-nov | Prueba en la tarjeta | En el computador de Edison programó la tarjeta y corrió la prueba (los interruptores y botones los manejamos nosotros). Escribió el script de prueba `prueba_fpga.py` (no está en el repositorio), que envía una imagen generada y, solo para la prueba, compara la respuesta con un modelo. Encontró por qué la primera imagen después de programar llegaba corrida un byte y propuso tres soluciones; nosotros escogimos presionar CPU RESET (D37). Escribió una guía de uso paso a paso | Sí (script de prueba) |
-| 24-nov | Repositorio final | A pedido nuestro, reescribió el README y la documentación en lenguaje sencillo, agregó la prueba en la tarjeta y la decisión D37, y quitó los comentarios de todo el código. Comprobó que el código quedó igual: mismas pruebas, misma síntesis y mismo esquemático (ver `docs/04_verificacion.md`, sección 5) | Sí (solo se quitaron comentarios) |
+| 23-nov | Prueba en la tarjeta | En el computador de Edison programó la tarjeta y corrió la prueba (los interruptores y botones los manejamos nosotros). Escribió la primera versión del script de prueba `prueba_fpga.py`, que enviaba una imagen generada y, solo para la prueba, comparaba la respuesta con un modelo. Encontró por qué la primera imagen después de programar llegaba corrida un byte y propuso tres soluciones; nosotros escogimos presionar CPU RESET (D37). Escribió una guía de uso paso a paso | Sí (script de prueba) |
+| 23-nov (noche) | Script de demostración | Hizo una versión corta de `prueba_fpga.py` (95 líneas, sin comentarios y sin el modelo): solo abre la imagen, la envía, recibe la respuesta y muestra las dos (R-F01). Es la que está en el repositorio | Sí |
+| 24-nov | Repositorio final | A pedido nuestro, reescribió el README y la documentación en lenguaje sencillo, agregó la prueba en la tarjeta y la decisión D37, quitó los comentarios de todo el código y agregó la versión corta de `prueba_fpga.py` (con la imagen de prueba del repositorio en vez de una ruta de nuestro computador) y las imágenes que devolvió la tarjeta. Comprobó que el código quedó igual: mismas pruebas, misma síntesis y mismo esquemático (ver `docs/04_verificacion.md`, sección 5) | Sí (solo se quitaron comentarios) |
 
 ## 4. Qué generó la IA, archivo por archivo
 
@@ -61,7 +63,8 @@ Le pedimos actuar como tutor y co-diseñador con estas reglas (texto completo en
 | `docs/*.md` | Redactó los documentos a partir de las conversaciones y las decisiones del equipo | Tomó las decisiones y trajo la retroalimentación del profesor |
 | `README.md` | Lo redactó; la versión en lenguaje sencillo es del 24-nov | Pidió que fuera sencillo y sin tecnicismos |
 | Comentarios del código | Los quitó de todos los archivos de código el 24-nov, sin cambiar nada más | Lo pidió |
-| `prueba_fpga.py` (fuera del repositorio) | Lo escribió para la prueba en la tarjeta del 23-nov | Manejó la tarjeta durante la prueba |
+| `python/prueba_fpga.py` | Escribió la versión de la prueba del 23-nov y después la versión corta para la demostración, que es la que está aquí | Manejó la tarjeta durante la prueba |
+| `docs/prueba_tarjeta/` | Copió del computador de Edison las imágenes que devolvió la tarjeta y las aumentó 3 veces para verlas mejor | Son las salidas reales de la tarjeta en nuestra prueba |
 
 ## 5. Lo que no hizo la IA
 
@@ -111,6 +114,7 @@ están resumidos.
 | Vivado | Instalar Vivado, organizar el código por secciones ("qué poner en cada espacio") e indicar paso a paso cómo cargarlo, simularlo y programar la tarjeta |
 | Estudio | Explicar bloque por bloque el código y el esquemático |
 | Prueba en la tarjeta | Conectar la tarjeta y probarla; dejar como está lo del primer byte corrido (presionar CPU RESET) y hacer una guía paso a paso para usar el proyecto desde cero |
+| Script de demostración | Hacer el script de Python más corto y sin comentarios |
 | Repositorio final | Terminar el repositorio de forma sencilla, sin tantos tecnicismos, y quitar los comentarios de todo el código |
 
 ## 7. Cómo verificamos el código generado

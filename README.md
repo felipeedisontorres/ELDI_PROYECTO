@@ -90,6 +90,10 @@ La FPGA se borra cuando la tarjeta se apaga. Si la apagas, hay que repetir este 
 
 ### 5. Mandar una imagen
 
+Hay dos programas para esto en la carpeta `python/`. Los dos hacen lo mismo: abren la imagen, la envían,
+reciben la respuesta y muestran las dos imágenes. Ninguno hace cuentas con los píxeles.
+
+**Opción A: `procesar_imagen.py`** (sirve en Windows, Linux y macOS, pero hay que instalar unas librerías).
 Abre una terminal (en Windows sirve el Símbolo del sistema o PowerShell) dentro de la carpeta `python/` y
 escribe:
 
@@ -118,6 +122,17 @@ volver idéntica. Si vuelve igual, la comunicación funciona y ya se pueden prob
 
 Sirve cualquier imagen. Si no mide 128 × 128, el programa la ajusta a ese tamaño al abrirla, pero lo mejor es
 usar una que ya tenga ese tamaño, como `imagen_prueba.png`.
+
+**Opción B: `prueba_fpga.py`** (solo Windows, no hay que instalar nada). Es una versión corta que preparamos
+para la demostración. Usa solo lo que ya trae Python: le habla directamente a Windows para usar el puerto COM y
+usa Tkinter (la librería de ventanas que viene con Python) para abrir y mostrar la imagen.
+
+1. Abre `python/prueba_fpga.py` con IDLE, el editor que viene con Python.
+2. Revisa las dos líneas de arriba. `PUERTO = 'COM6'` es el puerto donde quedó nuestra tarjeta; cámbialo si la
+   tuya quedó en otro. `IMAGEN = 'imagen_prueba.png'` es la imagen que se envía; puedes poner la ruta de otra,
+   pero tiene que ser PNG o GIF y medir exactamente 128 × 128.
+3. Pon los interruptores, presiona **F5** y espera unos 9 segundos sin tocar la tarjeta. Se abre una ventana
+   con la imagen enviada y la que devolvió la FPGA, y en IDLE aparece cuántos bytes llegaron (deben ser 49 152).
 
 ### 6. Probar otro filtro sin volver a mandar la imagen
 
@@ -248,16 +263,16 @@ esperados: 0 bytes distintos de 49 152 en cada modo. Cada imagen tardó unos 4,6
 ruido encendido, en bypass cambió cerca del 14 % de los bytes, como se espera cuando se agrega ruido (eso lo
 revisamos a simple vista). El detalle está en [`docs/04_verificacion.md`](docs/04_verificacion.md).
 
-Así se ven las salidas en la simulación con la imagen completa:
+Estas son las imágenes que devolvió la tarjeta en esa prueba, aumentadas 3 veces para verlas mejor. En bypass
+la imagen vuelve idéntica, así que la primera es también la imagen que se envió:
 
-| Imagen original | Gaussiano | Laplaciano |
-|---|---|---|
-| ![Imagen original](docs/explicacion/img/sim_in_x3.png) | ![Gaussiano](docs/explicacion/img/sim_G_x3.png) | ![Laplaciano](docs/explicacion/img/sim_L_x3.png) |
-| **LoG** (aclarado 4 veces solo para que se vea) | **Unsharp** | **Con ruido** (12,5 %) |
-| ![LoG](docs/explicacion/img/sim_LoGx4_x3.png) | ![Unsharp](docs/explicacion/img/sim_US_x3.png) | ![Con ruido](docs/explicacion/img/sim_NOISE_x3.png) |
+| Entrada (bypass) | Gaussiano | Laplaciano | LoG | Unsharp |
+|---|---|---|---|---|
+| ![Entrada y bypass](docs/prueba_tarjeta/salida_bypass_x3.png) | ![Gaussiano](docs/prueba_tarjeta/salida_gaussiano_x3.png) | ![Laplaciano](docs/prueba_tarjeta/salida_laplaciano_x3.png) | ![LoG](docs/prueba_tarjeta/salida_log_x3.png) | ![Unsharp](docs/prueba_tarjeta/salida_unsharp_x3.png) |
 
-El LoG de verdad sale muy oscuro, y está bien que así sea: como primero suaviza, los bordes que quedan son
-suaves. En la tabla está multiplicado por 4 solo para poder verlo.
+El LoG sale más oscuro que el Laplaciano, y está bien que así sea: como primero suaviza, los bordes que quedan
+son más suaves. Las imágenes de la simulación con la imagen completa están en
+[`docs/04_verificacion.md`](docs/04_verificacion.md).
 
 ## Algo que aprendimos en la prueba con la tarjeta
 
@@ -283,7 +298,7 @@ decisión D37 de [`docs/03_decisiones.md`](docs/03_decisiones.md).
 | `sim/` | `run_all.sh` corre todas las pruebas con Icarus Verilog; `full/` es la prueba con la imagen completa; `wave/` dibuja las formas de onda; `syn.ys` es una síntesis de prueba con Yosys (un programa libre de síntesis), solo para estimar recursos. |
 | `constraints/` | Los pines de la tarjeta, en archivos XDC (Xilinx Design Constraints). Salen del archivo oficial de Digilent ([github.com/Digilent/digilent-xdc](https://github.com/Digilent/digilent-xdc)); no escribimos ningún pin a mano. Usamos el de la Nexys A7-100T (la Nexys A7 es el nombre nuevo de la Nexys 4 DDR) y con ese hicimos la prueba en nuestra Nexys 4 DDR. El otro archivo es para la Nexys 4 original. |
 | `vivado/` | El script que arma el proyecto de Vivado. |
-| `python/` | El programa del computador (`procesar_imagen.py`), la imagen de prueba y la lista de librerías. |
+| `python/` | Los dos programas del computador (`procesar_imagen.py` y `prueba_fpga.py`), la imagen de prueba y la lista de librerías. |
 | `docs/` | La documentación (ver la tabla de abajo). |
 | `AI_USAGE.md` | Cómo usamos la inteligencia artificial en el proyecto. |
 
@@ -293,6 +308,7 @@ decisión D37 de [`docs/03_decisiones.md`](docs/03_decisiones.md).
 | [`docs/02_arquitectura.md`](docs/02_arquitectura.md) | El resumen de cómo está armado el circuito. |
 | [`docs/03_decisiones.md`](docs/03_decisiones.md) | Las decisiones de diseño: qué escogimos, qué descartamos y por qué. |
 | [`docs/04_verificacion.md`](docs/04_verificacion.md) | Cómo probamos cada parte y qué dio cada prueba, incluida la prueba en la tarjeta. |
+| [`docs/prueba_tarjeta/`](docs/prueba_tarjeta) | Las imágenes que devolvió la tarjeta en la prueba del 23 de noviembre (las originales de 128 × 128 y las aumentadas 3 veces). |
 | [`docs/esquematico/esquematico_v4_1.pdf`](docs/esquematico/esquematico_v4_1.pdf) | El esquemático completo en una hoja A1, con el ancho de cada bus (cuántos bits lleva cada conexión). El programa que lo dibuja está en `generador/`. |
 | [`docs/explicacion/Explicacion_v4_1.pdf`](docs/explicacion/Explicacion_v4_1.pdf) | La explicación bloque por bloque: cómo funciona cada uno, el recorrido de un byte ciclo a ciclo, las pruebas, cómo cumplimos los tiempos y las preguntas que esperamos en la sustentación. |
 
