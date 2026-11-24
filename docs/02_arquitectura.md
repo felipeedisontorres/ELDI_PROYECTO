@@ -34,27 +34,6 @@ El LoG es el único filtro que necesita dos pasadas. La primera calcula el Gauss
 | Tiempo del cable | 49 152 × 10 bits / 115 200 ≈ 4,27 s en cada sentido | Cada byte lleva 10 bits: el de inicio, los 8 de datos y el de parada |
 | Tiempo de cálculo | 12 ciclos por byte, o sea 12 × 49 152 ≈ 5,9 ms por pasada sin contar el cable | En la última pasada el ritmo lo pone el cable: sale un byte cada 8 681 ciclos |
 
-## Diagrama de bloques
-
-```
-                  8                    8                        8
-UART_TXD_IN ─►[uart_rx]──rx_data──►[noise_gen]──────────►[BRAM_IN 65536×8]──┐
- (PC → FPGA)      │ rx_valid          ▲ SW[4:3]                ▲ WE=wr_in     │ 8
-                  ▼                   │                        │ 16         ▼
-               [ctrl]◄── SW[2:0], BTNC          [pos_counter]──┴──pos──► [MUX_SRC]◄── BRAM_TMP
-               FSM IDLE/P1/P2        ▲ fin          ▲ cnt_en                   │ 8
-                  │ ksel, absm,      │              │                          ▼
-                  │ src_tmp, tmp_wr  └──────────────┤                 [REG_PIX]  [REG_W]◄─[ROM_W]
-                  │                                 │                      │ 8     │ 8
-                  ▼                         [tap_seq]──naddr (16)──► RA      ▼       ▼
-               go, tx_start                 TAP 0..11, ROM_OFF,        [multiplicador 9×8 con signo]
-                                            sumadores + MUX_ROW/COL           │
-                                                                       [sumador + ACC 15 b]
-                                                                              │ 15
-                                            BRAM_TMP ◄──── y (8) ◄──── [post_proc: ÷16, |x|, sat]
-                                            (P1 del LoG)                      │ 8
-UART_RXD_OUT ◄──────────────────────────────────────────────────────── [uart_tx]
- (FPGA → PC)
 ```
 
 Los números sobre las flechas son el ancho del bus en bits. Este dibujo solo muestra el camino principal; el
