@@ -309,7 +309,7 @@ decisión D37 de [`docs/03_decisiones.md`](docs/03_decisiones.md).
 | [`docs/03_decisiones.md`](docs/03_decisiones.md) | Las decisiones de diseño: qué escogimos, qué descartamos y por qué. |
 | [`docs/04_verificacion.md`](docs/04_verificacion.md) | Cómo probamos cada parte y qué dio cada prueba, incluida la prueba en la tarjeta. |
 | [`docs/prueba_tarjeta/`](docs/prueba_tarjeta) | Las imágenes que devolvió la tarjeta en la prueba del 23 de noviembre (las originales de 128 × 128 y las aumentadas 3 veces). |
-| [`docs/esquematico/esquematico_v4_1.pdf`](docs/esquematico/esquematico_v4_1.pdf) | El esquemático completo en una hoja A1, con el ancho de cada bus (cuántos bits lleva cada conexión). El programa que lo dibuja está en `generador/`. |
+| [`docs/esquematico/esquematico_v4_1.pdf`](docs/esquematico/esquematico_v4_1.pdf) | El esquemático completo en una hoja A1, con el ancho de cada bus (cuántos bits lleva cada conexión). |
 | [`docs/explicacion/Explicacion_v4_1.pdf`](docs/explicacion/Explicacion_v4_1.pdf) | La explicación bloque por bloque: cómo funciona cada uno, el recorrido de un byte ciclo a ciclo, las pruebas, cómo cumplimos los tiempos y las preguntas que esperamos en la sustentación. |
 
 ## Uso de inteligencia artificial

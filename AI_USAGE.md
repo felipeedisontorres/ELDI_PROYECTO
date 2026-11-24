@@ -1,58 +1,46 @@
+# Uso de inteligencia artificial (R-G08)
 
-## 1. Herramienta
+En el proyecto usamos Claude (de Anthropic) como tutor y co-diseñador. Le dimos los requisitos del curso, las
+diapositivas y la guía del profesor `5_Implementacion_Operaciones_Puntuales.pdf`. El profesor nos autorizó a
+usar código hecho con IA siempre que entendamos todo el código.
 
-- **IA:** Claude (Anthropic), en un proyecto de claude.ai llamado "ELDI-FINAL".
-- **Material que le dimos:** los requisitos del curso (`Projects-Proposals.pdf`, `Requrimientos Minimos parte 2.pdf`),
-  las diapositivas del curso (1 a 10) y la guía del profesor `5_Implementacion_Operaciones_Puntuales.pdf`.
+Le pusimos estas reglas: usar solo temas vistos en clase, citar el requisito que respalda cada propuesta, no
+inventar datos ni números de pin, y explicarnos cada decisión con sus alternativas para poder entenderla y
+defenderla.
 
+## Para qué la usamos
 
-## 2. Reglas que le pusimos
-
-Le pedimos actuar como tutor y co-diseñador con estas reglas :
-
-1. Usar solo temas vistos en las presentaciones del curso y avisar si algo se sale de ellas.
-2. Citar el requisito (R-xx) que respalda cada propuesta.
-3. No inventar requisitos, datasheets ni números de pin: los pines salen del XDC maestro oficial de Digilent.
-4. Explicar paso a paso, con alternativas y ventajas y desventajas, para que podamos entender y defender el diseño.
-
-
-## 3. Registro por fecha
-
-| Fecha | Propósito | Cómo se usó | ¿Generó código? |
+| Etapa | Fechas | Para qué usamos la IA | ¿Generó código? |
 |---|---|---|---|
-| 21-oct | Planteamiento | Propuso la tabla de requisitos R-xx, las preguntas al profesor y la arquitectura base | No |
-| 27-oct | Guía del profesor | Analizó `5_Implementacion_Operaciones_Puntuales.pdf` y propuso las decisiones D1–D7 con alternativas; el equipo escogió | No |
-| 28-oct | Esquemático v2 | Con la retroalimentación del profesor (R-F02), rediseñó el esquemático en una hoja A1 y escribió una guía de estudio bloque a bloque | Sí (script de dibujo) |
-| 03-nov | Código v2 | Escribió los módulos en SystemVerilog, los testbenches y el XDC a partir del esquemático v2 | Sí |
-| 17-nov | Diseño v4 | Rediseñó todo el esquemático para simplificarlo (D23–D35), escribió el código, los testbenches, el generador del esquemático y `Explicacion_v4.pdf`, y corrió las simulaciones | Sí |
-| 17-nov | Herramientas | Instaló en el computador de Edison las librerías de Python (pyserial, pillow, numpy, matplotlib) | No |
-| 18-nov | Cierre de tiempos (v4.1) | Encontró en el reporte de Vivado que la v4 no cumplía tiempos y agregó el registro de segmentación (D36); actualizó el esquemático y la explicación a v4.1 | Sí |
-| 18-nov | Estudio | Explicó bloque por bloque `uart_rx` y `pos_counter` con ejemplos numéricos | No |
+| Elección y planteamiento | 14 al 27 de octubre | Comparar proyectos de la lista, ordenar los requisitos, analizar la guía del profesor y proponer alternativas para las primeras decisiones (D1 a D7) | No |
+| Esquemático y código | 28 de octubre al 3 de noviembre | Dibujar el esquemático en una sola hoja y escribir los módulos, las pruebas y los pines a partir de él | Sí |
+| Rediseños | 10 al 18 de noviembre | Simplificar el diseño con la retroalimentación del profesor (v3 y v4), cumplir los tiempos en Vivado (v4.1) y explicarnos cada bloque | Sí |
+| Herramientas | 17 y 18 de noviembre | Ayudarnos a instalar Vivado y las librerías de Python, y escribir los scripts de Vivado y de Python | Sí |
+| Prueba en la tarjeta | 23 de noviembre | Escribir el script de prueba y su versión corta para la demostración, ayudarnos a programar la tarjeta y encontrar por qué la primera imagen llegaba corrida un byte (D37) | Sí |
+| Repositorio final | 24 de noviembre | Organizar el repositorio y redactar el README y los documentos | No |
 
+## Qué hicimos nosotros y qué hizo la IA
 
-## 6. Instrucciones (prompts) principales
+**Nosotros:**
+- Escogimos el proyecto, la tarjeta y qué tan complejo hacerlo.
+- Presentamos los avances y trajimos la retroalimentación del profesor (R-F01, R-F02 y R-F03), que es la que
+  llevó a cada rediseño.
+- Escogimos entre las alternativas en las decisiones de diseño, por ejemplo de D1 a D7 y la D37 (ver
+  [`docs/03_decisiones.md`](docs/03_decisiones.md)).
+- Manejamos la tarjeta en la prueba (interruptores, botones e imágenes).
+- Estudiamos el diseño bloque por bloque para la sustentación.
 
-### Instrucciones fijas del proyecto
+**La IA:**
+- Propuso alternativas para las decisiones y nos explicó cada bloque con ejemplos.
+- Generó el código a partir de lo que le pedimos: los módulos de `rtl/`, las pruebas de `tb/`, los scripts de
+  `sim/`, `python/` y `vivado/`, y los pines de `constraints/`, que copió del archivo oficial de Digilent.
+- Dibujó el esquemático y redactó la explicación bloque por bloque, el README y los documentos de `docs/`.
 
-> Eres mi tutor y co-diseñador para el proyecto final de Electrónica Digital (Escuela Colombiana de Ingeniería).
->
-> CONTEXTO
-> - Los archivos 00_ y 01_ contienen los requisitos mínimos (parte 1 y parte 2 en español). Cumplir ABSOLUTAMENTE TODOS es obligatorio.
-> - El profesor valora más que el código: cómo planteamos el problema, cómo diseñamos el hardware, cómo lo desarrollamos y que se vea lo aprendido en el curso.
-> - Solo podemos usar temas vistos en las presentaciones (archivos 10_ en adelante). Si propones algo fuera de ellas, avísame explícitamente y justifica.
->
-> REGLAS
-> 1. Antes de proponer algo, verifica que respeta los requisitos y cita sus IDs (R-xx).
-> 2. Nunca inventes requisitos, citas, datasheets, números de pin ni páginas. Si algo no está en mis archivos, dilo. Para información externa, remíteme a fuentes oficiales (manual de la tarjeta, documentación del fabricante) y dime qué debo verificar yo.
-> 3. Modo aprendizaje: explica paso a paso y de forma muy detallada; justifica cada decisión con alternativas y trade-offs; antes de darme una solución completa, pídeme que lo intente o que prediga el resultado, salvo que yo escriba "dame la solución directa".
-> 4. Honestidad total: si mi idea o mi razonamiento tiene un problema, dímelo sin suavizarlo.
-> 5. Si hay ambigüedad o contradicción entre requisitos, no elijas por mí: señálala y redacta la pregunta para el profesor.
-> 6. Prefiero respuestas largas y completas antes que cortas e incompletas. Los entregables van en markdown o en documento descargable.
-> 7. Al terminar cada sesión de trabajo, cuando te lo pida, genera la actualización de STATE.md con la plantilla de abajo.
+## Cómo se comprobó el código
 
+- Cada módulo tiene su testbench y todos terminan en PASS.
+- El sistema completo, simulado con la imagen de 128 × 128, da exactamente los mismos bytes que un modelo de
+  referencia en los cinco modos.
+- En la tarjeta, el 23 de noviembre, los cinco modos devolvieron exactamente los bytes esperados.
 
-## 7. Cómo verificamos el código generado
-
-1. **Testbenches autoverificables:** cada módulo tiene su testbench y todos terminan en PASS
-   (ver [`docs/04_verificacion.md`](docs/04_verificacion.md)).
-
+El detalle está en [`docs/04_verificacion.md`](docs/04_verificacion.md).

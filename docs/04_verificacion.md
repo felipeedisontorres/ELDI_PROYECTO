@@ -160,8 +160,7 @@ cambió nada del funcionamiento:
 - Volvimos a correr la prueba con la imagen completa de 128 × 128: 491 529 verificaciones y 0 errores, igual
   que antes.
 - La síntesis de prueba con Yosys da exactamente los mismos recursos y el mismo circuito.
-- El generador del esquemático produce el mismo archivo SVG, byte por byte, y el documento de explicación da
-  las mismas 28 páginas.
+- El documento de explicación da las mismas 28 páginas.
 
 ## 6. Lo que no alcanzamos a revisar en la tarjeta
 
