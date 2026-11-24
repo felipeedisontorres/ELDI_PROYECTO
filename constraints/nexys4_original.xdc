@@ -1,6 +1,3 @@
-## Restricciones de image_proc_top para la Nexys 4 ORIGINAL (no DDR).
-## Generado del archivo oficial Digilent Nexys-4-Master.xdc, renombrando los puertos a los del top.
-
 set_property PACKAGE_PIN E3 [get_ports {CLK100MHZ}]
 set_property IOSTANDARD LVCMOS33 [get_ports {CLK100MHZ}]
 create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {CLK100MHZ}]

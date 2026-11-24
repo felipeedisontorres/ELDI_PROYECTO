@@ -1,28 +1,10 @@
-// ============================================================================
-// tb_image_proc_top: testbench del SISTEMA completo (todos los bloques juntos)
-// ----------------------------------------------------------------------------
-// La imagen entra bit a bit por el pin UART_TXD_IN y la respuesta se decodifica
-// bit a bit desde el pin UART_RXD_OUT, igual que en la tarjeta. Cada byte
-// recibido se compara con un MODELO DE REFERENCIA escrito aqui (convolucion
-// 3x3 con borde replicado, /16 por piso, |.| o recorte, saturacion a 255).
-// El modelo vive SOLO en el testbench (verificacion), no en el sistema (R-F01).
-//
-// FULL = 0 (por defecto): imagen 8 x 8, CPB = 8. Casos: G, L, LoG, Unsharp,
-//   bypass (100 y 111) con BTNC, imagen de extremos, ruido en los 3 niveles
-//   (estructura, densidad y contenido exacto de BRAM_IN), filtros sobre la
-//   imagen con ruido, bytes que llegan durante el procesamiento (se ignoran),
-//   BTNC sostenido durante el procesamiento (se ignora), LEDs, contenido de
-//   BRAM_TMP en el LoG y temporizacion de la salida.
-// FULL = 1: imagen real de 128 x 128 leida de img_in.hex; corre todos los modos
-//   y guarda cada salida en out_<modo>.hex (para las figuras del informe).
-// ============================================================================
 `timescale 1ns/1ps
 module tb_image_proc_top;
     parameter int LOG_W = 3;
     parameter int CPB   = 8;
     parameter int FULL  = 0;
     localparam int W  = 1 << LOG_W;
-    localparam int NB = W * W * 3;               // bytes por imagen
+    localparam int NB = W * W * 3;
 
     logic       CLK100MHZ = 0, CPU_RESETN = 0, UART_TXD_IN = 1, BTNC = 0;
     logic [4:0] SW = 5'b00000;
@@ -33,22 +15,20 @@ module tb_image_proc_top;
         .CLK100MHZ(CLK100MHZ), .CPU_RESETN(CPU_RESETN), .UART_TXD_IN(UART_TXD_IN),
         .UART_RXD_OUT(UART_RXD_OUT), .SW(SW), .BTNC(BTNC), .LED(LED));
 
-    always #5 CLK100MHZ = ~CLK100MHZ;            // 100 MHz
+    always #5 CLK100MHZ = ~CLK100MHZ;
 
     integer errors = 0, checks = 0;
     integer cyc = 0;
     always @(posedge CLK100MHZ) cyc <= cyc + 1;
 
-    // ---------------- memorias del testbench ----------------
-    logic [7:0] img    [0:NB-1];                 // imagen enviada
-    logic [7:0] stored [0:NB-1];                 // contenido esperado de BRAM_IN (con ruido)
-    logic [7:0] tmpimg [0:NB-1];                 // Gaussiano esperado (1a pasada LoG)
-    logic [7:0] refo   [0:NB-1];                 // salida esperada
-    logic [7:0] outb   [0:NB-1];                 // salida recibida
+    logic [7:0] img    [0:NB-1];
+    logic [7:0] stored [0:NB-1];
+    logic [7:0] tmpimg [0:NB-1];
+    logic [7:0] refo   [0:NB-1];
+    logic [7:0] outb   [0:NB-1];
     integer     out_cnt = 0;
     integer     K [0:3][0:8];
 
-    // ================= UART: envio de bytes al pin UART_TXD_IN =================
     task automatic send_byte(input [7:0] b);
         integer i;
         begin
@@ -71,7 +51,6 @@ module tb_image_proc_top;
         end
     endtask
 
-    // ================= UART: decodificacion del pin UART_RXD_OUT =================
     integer tx_t0 = 0, tx_prev = 0, tx_gap_min = 1 << 30, tx_gap_max = 0;
     always begin : monitor_tx
         logic [7:0] b;
@@ -95,8 +74,6 @@ module tb_image_proc_top;
         out_cnt = out_cnt + 1;
     end
 
-    // ================= modelo del ruido (LFSR) =================
-    // Se replica el LFSR; el enable usa ch y wr_in del DUT (verificados aparte).
     logic [15:0] m_lfsr;
     integer      wr_cnt = 0, hit_px = 0;
     logic        m_hit;
@@ -114,12 +91,10 @@ module tb_image_proc_top;
         end
     end
 
-    // ================= modelo de referencia de los filtros =================
     function automatic integer clampi(input integer v);
         clampi = (v < 0) ? 0 : (v > W-1) ? W-1 : v;
     endfunction
 
-    // k: 0 G, 1 L, 2 identidad, 3 unsharp.  src: 0 stored, 1 tmpimg.  dst: 0 refo, 1 tmpimg
     task automatic conv_ref(input integer k, input integer src, input integer dst);
         integer r, c, chn, i, acc, s, e, v;
         begin
@@ -132,7 +107,7 @@ module tb_image_proc_top;
                             else          v = tmpimg[(clampi(r + i/3 - 1)*W + clampi(c + i%3 - 1))*3 + chn];
                             acc = acc + K[k][i] * v;
                         end
-                        s = acc >>> 4;                       // piso de acc/16
+                        s = acc >>> 4;
                         if (s < 0) e = (k == 1) ? -s : 0; else e = s;
                         if (e > 255) e = 255;
                         if (dst == 0) refo[(r*W + c)*3 + chn] = e;
@@ -141,26 +116,24 @@ module tb_image_proc_top;
         end
     endtask
 
-    // modo = SW[2:0]
     task automatic make_ref(input [2:0] md);
         begin
-            if (md[2])               conv_ref(2, 0, 0);       // bypass
+            if (md[2])               conv_ref(2, 0, 0);
             else case (md[1:0])
-                2'b00: conv_ref(0, 0, 0);                     // G
-                2'b01: conv_ref(1, 0, 0);                     // L
-                2'b10: begin conv_ref(0, 0, 1); conv_ref(1, 1, 0); end   // LoG
-                2'b11: conv_ref(3, 0, 0);                     // unsharp
+                2'b00: conv_ref(0, 0, 0);
+                2'b01: conv_ref(1, 0, 0);
+                2'b10: begin conv_ref(0, 0, 1); conv_ref(1, 1, 0); end
+                2'b11: conv_ref(3, 0, 0);
             endcase
         end
     endtask
 
-    // ================= utilidades de verificacion =================
     task automatic wait_output(input integer timeout_cycles);
         integer t;
         begin
             t = 0;
             while (out_cnt < NB && t < timeout_cycles) begin @(posedge CLK100MHZ); t = t + 1; end
-            repeat (12*CPB) @(posedge CLK100MHZ);              // margen: no deben llegar mas bytes
+            repeat (12*CPB) @(posedge CLK100MHZ);
         end
     endtask
 
@@ -191,7 +164,7 @@ module tb_image_proc_top;
             @(negedge CLK100MHZ); SW[2:0] = md;
             repeat (3) @(negedge CLK100MHZ);
             out_cnt = 0; tx_gap_min = 1 << 30; tx_gap_max = 0;
-            BTNC = 1; repeat (20) @(negedge CLK100MHZ); BTNC = 0;   // pulsacion "larga"
+            BTNC = 1; repeat (20) @(negedge CLK100MHZ); BTNC = 0;
         end
     endtask
 
@@ -224,7 +197,6 @@ module tb_image_proc_top;
     integer hits, bad_px;
     integer timeout;
     initial begin
-        // tablas de pesos (orden de barrido)
         for (i = 0; i < 9; i = i + 1) begin K[0][i] = 0; K[1][i] = 0; K[2][i] = 0; K[3][i] = 0; end
         K[0][0]=1;  K[0][1]=2;  K[0][2]=1;  K[0][3]=2;  K[0][4]=4;   K[0][5]=2;  K[0][6]=1;  K[0][7]=2;  K[0][8]=1;
         K[1][1]=16; K[1][3]=16; K[1][4]=-64; K[1][5]=16; K[1][7]=16;
@@ -243,17 +215,14 @@ module tb_image_proc_top;
         if (LED !== 8'h00) begin errors = errors + 1; $display("ERROR: LED tras reset = %h", LED); end
 
         if (FULL == 0) begin
-            // ---------- 1) imagen aleatoria, Gaussiano ----------
             for (i = 0; i < NB; i = i + 1) img[i] = $urandom % 256;
             SW = 5'b00_000; out_cnt = 0;
             send_image;
             wait_output(timeout);
             check_bram_in;
             compare_output(3'b000, "G");
-            // ---------- 2) BTNC: L, LoG, Unsharp, bypass ----------
             start_btnc(3'b001); wait_output(timeout); compare_output(3'b001, "L");
             start_btnc(3'b010);
-            // LEDs y BRAM_TMP durante el LoG
             wait (dut.state == 2'b10);
             checks = checks + 1;
             if (LED !== {2'b10, 3'b000, 3'b010}) begin errors = errors + 1; $display("ERROR: LED en P2 = %b", LED); end
@@ -269,16 +238,14 @@ module tb_image_proc_top;
             @(negedge CLK100MHZ);
             checks = checks + 1;
             if (LED !== {2'b01, 3'b000, 3'b011}) begin errors = errors + 1; $display("ERROR: LED en P1 = %b", LED); end
-            // BTNC sostenido durante el procesamiento: no debe reiniciar nada
             BTNC = 1; repeat (300) @(negedge CLK100MHZ); BTNC = 0;
             wait_output(timeout); compare_output(3'b011, "US");
             start_btnc(3'b100); wait_output(timeout); compare_output(3'b100, "bypass");
             start_btnc(3'b111); wait_output(timeout); compare_output(3'b111, "byp111");
 
-            // ---------- 3) imagen de extremos (bordes fuertes, saturacion) ----------
             for (i = 0; i < W*W; i = i + 1)
                 for (j = 0; j < 3; j = j + 1)
-                    img[i*3 + j] = (((i / W) + (i % W)) % 2) ? 8'hFF : 8'h00;   // damero
+                    img[i*3 + j] = (((i / W) + (i % W)) % 2) ? 8'hFF : 8'h00;
             img[(W+1)*3] = 8'h80; img[NB-1] = 8'hFF; img[0] = 8'h00;
             SW = 5'b00_001; out_cnt = 0; tx_gap_min = 1 << 30; tx_gap_max = 0;
             send_image; wait_output(timeout); check_bram_in;
@@ -287,13 +254,11 @@ module tb_image_proc_top;
             start_btnc(3'b011); wait_output(timeout); compare_output(3'b011, "US-ext");
             start_btnc(3'b000); wait_output(timeout); compare_output(3'b000, "G-ext");
 
-            // ---------- 4) ruido en los 3 niveles ----------
             for (j = 1; j < 4; j = j + 1) begin
-                for (i = 0; i < NB; i = i + 1) img[i] = 8'd60 + ($urandom % 136);   // sin 0 ni 255
+                for (i = 0; i < NB; i = i + 1) img[i] = 8'd60 + ($urandom % 136);
                 SW = {j[1:0], 3'b100}; out_cnt = 0; hit_px = 0; tx_gap_min = 1 << 30; tx_gap_max = 0;
                 send_image; wait_output(timeout); check_bram_in;
                 compare_output(3'b100, "ruido");
-                // estructura: cada pixel intacto o los 3 canales a 0x00 / 0xFF
                 hits = 0; bad_px = 0;
                 for (i = 0; i < W*W; i = i + 1) begin
                     if (outb[i*3] == img[i*3] && outb[i*3+1] == img[i*3+1] && outb[i*3+2] == img[i*3+2]) ;
@@ -309,7 +274,6 @@ module tb_image_proc_top;
                 start_btnc(3'b000); wait_output(timeout); compare_output(3'b000, "G-ruido");
             end
 
-            // ---------- 5) bytes que llegan durante el procesamiento se ignoran ----------
             start_btnc(3'b011);
             repeat (40*CPB) @(negedge CLK100MHZ);
             send_byte(8'h77); send_byte(8'h88);
@@ -319,7 +283,6 @@ module tb_image_proc_top;
             checks = checks + 1;
             if ({dut.row, dut.col, dut.ch} !== '0) begin errors = errors + 1; $display("ERROR: posicion no volvio a 0"); end
         end else begin
-            // ===================== imagen real de 128 x 128 =====================
             $readmemh("img_in.hex", img);
             SW = 5'b00_000; out_cnt = 0;
             send_image; wait_output(timeout); check_bram_in;
@@ -328,7 +291,6 @@ module tb_image_proc_top;
             start_btnc(3'b010); wait_output(timeout); compare_output(3'b010, "LoG");    dump_out("out_LoG.hex");
             start_btnc(3'b011); wait_output(timeout); compare_output(3'b011, "US");     dump_out("out_US.hex");
             start_btnc(3'b100); wait_output(timeout); compare_output(3'b100, "bypass"); dump_out("out_BYP.hex");
-            // misma imagen con ruido nivel 2 (12,5 %)
             SW = 5'b10_100; out_cnt = 0; hit_px = 0; tx_gap_min = 1 << 30; tx_gap_max = 0;
             send_image; wait_output(timeout); check_bram_in;
             compare_output(3'b100, "ruido");    dump_out("out_NOISE.hex");

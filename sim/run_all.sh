@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-# ============================================================================
-# Corre TODOS los testbenches con Icarus Verilog (iverilog -g2012) y resume.
-# Uso (desde la carpeta del proyecto):   bash sim/run_all.sh
-# Requiere: iverilog >= 11. En Ubuntu: sudo apt install iverilog gtkwave
-# ============================================================================
 set -u
 cd "$(dirname "$0")/.."
 mkdir -p sim/build

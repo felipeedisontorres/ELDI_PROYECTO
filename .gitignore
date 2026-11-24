@@ -1,4 +1,3 @@
-# Vivado: archivos generados
 *.jou
 *.log
 *.str
@@ -13,22 +12,18 @@ vivado*.backup.*
 *.bit
 *.ltx
 
-# Simulación (Icarus / GTKWave)
 *.vvp
 *.vcd
 *.fst
 sim_build/
 
-# Python
 __pycache__/
 *.pyc
 .venv/
 
-# Sistema
 .DS_Store
 Thumbs.db
 
-# Proyecto de Vivado creado con vivado/configurar_proyecto.tcl
 vivado/proyecto/
 *.xpr
 *.wdb

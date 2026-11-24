@@ -1,10 +1,8 @@
-// tb_wave: testbench solo para generar las formas de onda del informe (imagen 4 x 4, CPB = 8).
-// Uso: ver sim/wave/plot_wave.py
 `timescale 1ns/1ps
 module tb_wave;
     localparam int LOG_W = 2, CPB = 8, W = 4, NB = W*W*3;
     logic CLK100MHZ = 0, CPU_RESETN = 0, UART_TXD_IN = 1, BTNC = 0;
-    logic [4:0] SW = 5'b00_000;               // Gaussiano, sin ruido
+    logic [4:0] SW = 5'b00_000;
     logic UART_RXD_OUT; logic [7:0] LED;
     image_proc_top #(.CLKS_PER_BIT(CPB), .LOG_W(LOG_W)) dut (
         .CLK100MHZ(CLK100MHZ), .CPU_RESETN(CPU_RESETN), .UART_TXD_IN(UART_TXD_IN),

@@ -1,9 +1,3 @@
-// ============================================================================
-// tb_post_proc: testbench autoverificable del post-procesamiento (bloque 7)
-// EXHAUSTIVO: los 32 768 valores posibles del ACC (15 b con signo) con absm = 0
-// y absm = 1 (65 536 casos). Referencia: s = floor(acc/16); si s < 0 ->
-// (absm ? -s : 0); luego min(., 255).
-// ============================================================================
 `timescale 1ns/1ps
 module tb_post_proc;
     logic signed [14:0] acc = 0;
@@ -18,7 +12,7 @@ module tb_post_proc;
         for (m = 0; m < 2; m = m + 1)
             for (a = -16384; a <= 16383; a = a + 1) begin
                 acc = a; absm = m; #1;
-                s = (a >= 0) ? a / 16 : -((-a + 15) / 16);   // floor(a/16)
+                s = (a >= 0) ? a / 16 : -((-a + 15) / 16);
                 if (s < 0) e = m ? -s : 0; else e = s;
                 if (e > 255) e = 255;
                 checks = checks + 1;

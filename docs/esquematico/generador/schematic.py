@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-"""Esquematico RTL v4.1 del proyecto #8 (una hoja A1, todas las conexiones dibujadas).
-Genera ../esquematico_v4_1.svg. Coordenadas en mm. Los nombres coinciden con el RTL."""
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from schlib import *
@@ -8,14 +5,12 @@ from schlib import *
 S = Sheet(841, 594)
 W = S.wire
 
-# =========================================================================== titulo
 S.text(12, 14.5, 'Proyecto #8 · Image Processor (2D filters) — esquemático RTL v4.1 (arquitectura simplificada, MAC segmentado)',
        size=7.0, weight='bold')
 S.text(12, 22.5, 'Una sola hoja · todas las conexiones son cables dibujados (sin etiquetas que «saltan») · '
        'nombres = señales del código SystemVerilog · /n = ancho del bus en bits · '
        'punto = unión; cruce con salto = NO conectados', size=3.2, color='#333')
 
-# =========================================================================== marcos
 S.frame(48, 30, 172, 140, 'uart_rx · receptor UART 8N1', 1)
 S.frame(262, 30, 158, 140, 'noise_gen · ruido sal y pimienta', 2)
 S.frame(48, 194, 172, 116, 'pos_counter · posición {ROW, COL, CH}', 3, tdx=38)
@@ -26,10 +21,8 @@ S.frame(532, 194, 136, 184, 'post_proc · ÷16, |x|, saturación', 7)
 S.frame(678, 194, 124, 184, 'uart_tx · transmisor', 8, tdx=36)
 S.frame(250, 400, 581, 124, 'ctrl · unidad de control', 9, tdx=228)
 
-# =========================================================================== corredor (pistas verticales)
 X_AT10, X_FIN, X_GO, X_IDLE, X_WR, X_CH = 224, 227, 241, 245, 249, 257
 
-# =========================================================================== reloj y reset
 CLKY, RSTY = 176.0, 180.0
 clk_tip = S.port_in(12, CLKY, 'CLK100MHZ')
 rstn_tip = S.port_in(12, 187, 'CPU_RESETN')
@@ -41,7 +34,6 @@ W([clk_tip, (710, CLKY)], 'clk', arrow=False, name='clk (100 MHz)', npos=0, nfra
 
 
 def comb(xc, xr, regs, up):
-    """Peine de reloj/reset: rieles verticales en xc / xr y ramales a cada registro."""
     rr = [r for r in regs if 'rst' in r]
     ext_c = (min if up else max)(r['clk'][1] for r in regs)
     W([(xc, CLKY), (xc, ext_c)], 'clk', arrow=False, net='CLK')
@@ -67,12 +59,10 @@ def bar(x, y1, y2):
 
 
 def ctrl_tag(x, y):
-    """Marca de las compuertas de control dibujadas junto a su uso."""
     S.rect(x - 3.4, y - 2.3, 6.8, 3.2, fill='#404040', stroke='none', rx=0.6, layer='text')
     S.text(x, y, 'ctrl', size=1.9, anchor='middle', color='#fff', weight='bold')
 
 
-# =========================================================================== 1 · UART RX
 busy = S.box(92, 46, 26, 20, 'RX_BUSY', '1 FF', pins=[('d', 'l', .35, 'D'), ('q', 'r', .35, 'Q')],
              clk=('l', .7), rst=('l', .9))
 m_busy = S.mux(70, busy['d'].y - 8, name='MUX_BUSY')
@@ -124,8 +114,6 @@ W([n_v['out'], (182, n_v['out'].y), (182, 40), (66, 40), (66, m_busy['p1'].y), m
   name='~rx_valid', npos=2, nfrac=0.5)
 comb(84, 86, [busy, baud, bitc, srx], up=True)
 
-# =========================================================================== compuertas de control del corredor
-# AND_wr (apunta hacia arriba): wr_in = rx_valid · idle
 and_wr = S.gate('and', X_IDLE - 1.33 - 4.5, 121, n=2, h=8, rot='u')
 ctrl_tag(and_wr['out'].x - 8.5, and_wr['out'].y + 3.4)
 W([(167, and_v['out'].y), (167, 134), (and_wr['i0'].x, 134), and_wr['i0']], 'sig', net='rx_valid',
@@ -134,11 +122,9 @@ YWR = and_wr['out'].y - 3.5
 W([and_wr['out'], (and_wr['out'].x, YWR), (X_WR, YWR)], 'sig', arrow=False, net='wr_in', name='wr_in',
   npos=0, nfrac=None, ndx=-9.0, ndy=-1.0)
 S.dot(X_WR, YWR, C_SIG)
-# OR_cnt (apunta a la izquierda): cnt_en = wr_in + go
 or_cnt = S.gate('or', 229.5, 201.5, n=2, h=7, rot='l')
 ctrl_tag(234.5, 197.2)
 
-# =========================================================================== 2 · ruido
 lfsr = S.box(300, 64, 44, 26, 'LFSR', '16 b · semilla 0xACE1',
              pins=[('si', 'l', .25, 'SI'), ('en', 'l', .5, 'EN'), ('q', 'r', .5, 'Q')],
              clk=('l', .72), rst=('l', .9), ssize=2.0)
@@ -172,10 +158,8 @@ W([(380, m_nz['p1'].y), m_nz['p1']], 'bus', width=8, wfrac=0.45)
 S.text(372, m_nz['p1'].y + 7.0, '0x00 / 0xFF', size=2.0, anchor='middle', color='#444')
 W([cmp_lt['r'], (m_nz['sel'].x, cmp_lt['r'].y), m_nz['sel']], 'sig', name='hit', nsize=2.4)
 comb(292, 294, [lfsr], up=True)
-# wr_in -> NOR (entrada de arriba)
 W([(X_WR, YWR), (X_WR, nor['ins'][0].y), nor['ins'][0]], 'sig', net='wr_in')
 
-# =========================================================================== 3 · contador de posicion
 def counter3(y, title, sub, pins):
     return S.box(92, y, 24, 18, title, sub, pins=pins, clk=('l', .55), rst=('l', .85), ssize=2.0)
 
@@ -217,18 +201,15 @@ W([eo2, (157, eo2.y), (157, 276), (rowc['en'].x, 276), rowc['en']], 'sig', dots=
   net='e_row')
 S.text(158, eo2.y - 1.0, 'e_row', size=2.2, italic=True, color=C_SIG)
 W([(139, 276), (139, and_fn['i0'].y), and_fn['i0']], 'sig', net='e_row')
-# cnt_en: desde OR_cnt (corredor) hacia EN de CH y la AND de e_col
 YCNT = or_cnt['out'].y
 W([or_cnt['out'], (chc['en'].x, YCNT), chc['en']], 'sig', name='cnt_en', npos=0, nfrac=0.42,
   dots=[(135, YCNT)], net='cnt_en')
 W([(135, YCNT), (135, and_ec['i0'].y), and_ec['i0']], 'sig', net='cnt_en')
-# fin -> pista del corredor -> FSM
 YF = and_fn['out'].y
 W([and_fn['out'], (X_FIN, YF)], 'sig', arrow=False, name='fin', npos=0, nfrac=0.3, net='fin')
 comb(80, 82, [chc, colc, rowc], up=False)
 
-# =========================================================================== 5 · taps y vecino
-XP = 204                                       # bus pos baja por aqui
+XP = 204
 YPOS = colc['q'].y
 Y_TROW, Y_TCOL, Y_TCH = 326, 330, 387
 add_r = S.op(158, 348, '+')
@@ -238,17 +219,14 @@ m_c = S.mux(174, add_c['r'].y - 32 / 3, name=None)
 S.text(m_r['out'].x + 1.0, m_r['out'].y - 6.6, 'MUX_ROW', size=2.1, weight='bold', color='#333')
 S.text(m_c['out'].x + 1.0, m_c['out'].y - 6.6, 'MUX_COL', size=2.1, weight='bold', color='#333')
 W([(XB + 0.9, YPOS), (XP, YPOS), (XP, Y_TCH)], 'bus', arrow=False, net='pos', dots=[(XP, Y_TROW), (XP, Y_TCOL)])
-# row = pos[15:9]
 W([(XP, Y_TROW), (add_r['t'].x, Y_TROW), add_r['t']], 'bus', width=7, wfrac=0.1, dots=[(170, Y_TROW)],
   net='trow')
 S.text(184, Y_TROW - 1.0, 'row = pos[15:9]', size=2.1, anchor='middle', italic=True)
 W([(170, Y_TROW), (170, m_r['p1'].y), m_r['p1']], 'bus', net='trow')
-# col = pos[8:2]
 W([(XP, Y_TCOL), (165, Y_TCOL), (165, m_c['p1'].y), m_c['p1']], 'bus',
   width=7, wfrac=0.1, dots=[(165, add_c['t'].y - 6)], net='tcol')
 S.text(186, Y_TCOL + 3.2, 'col = pos[8:2]', size=2.1, anchor='middle', italic=True)
 W([(165, add_c['t'].y - 6), (add_c['t'].x, add_c['t'].y - 6), add_c['t']], 'bus', net='tcol')
-# rsum / csum
 W([add_r['r'], m_r['p0']], 'bus', width=8, wfrac=0.78, dots=[(167, add_r['r'].y)], net='rsum')
 S.text(168.5, add_r['r'].y + 2.8, 'rsum', size=2.0, italic=True)
 W([(167, add_r['r'].y), (167, m_r['sel'].y + 3.2), (m_r['sel'].x, m_r['sel'].y + 3.2), m_r['sel']], 'sig',
@@ -259,7 +237,6 @@ S.text(168.5, add_c['r'].y + 2.8, 'csum', size=2.0, italic=True)
 W([(167, add_c['r'].y), (167, m_c['sel'].y + 3.2), (m_c['sel'].x, m_c['sel'].y + 3.2), m_c['sel']], 'sig',
   net='csum')
 S.text(186, m_c['sel'].y + 5.6, 'csum[7]', size=2.0, anchor='middle', italic=True, color=C_SIG)
-# barra naddr
 XN = 196
 YNB = Y_TCH + 3
 bar(XN, m_r['out'].y - 4, YNB)
@@ -271,13 +248,11 @@ W([m_c['out'], (XN - 0.9, m_c['out'].y)], 'bus', width=7, wfrac=0.6)
 S.text(185, m_c['out'].y - 1.0, 'ncol', size=2.0, anchor='middle', italic=True)
 W([(XP, Y_TCH), (XN + 0.9, Y_TCH)], 'bus', width=2, wfrac=0.5)
 S.text(XP + 1.2, Y_TCH + 2.6, 'ch = pos[1:0]', size=2.0, italic=True)
-# ROM_OFF
 rof = S.box(110, 341, 28, 42, 'ROM_OFF', '12 × 4 b', fill=F_ROM,
             pins=[('a', 'b', .5, 'A'), ('dr', 'r', (348 - 341) / 42, 'dr'), ('dc', 'r', (376 - 341) / 42, 'dc')],
             ssize=2.0)
 W([rof['dr'], add_r['l']], 'bus', width=2, wfrac=0.45)
 W([rof['dc'], add_c['l']], 'bus', width=2, wfrac=0.45)
-# TAP, comparador = 11, NOR (tap_en)
 tapc = S.box(88, 420, 24, 18, 'TAP', 'cont. 4 b', pins=[('clr', 't', .3, 'CLR'), ('en', 't', .75, 'EN'),
                                                        ('q', 'r', .5, '')],
              clk=('l', .55), rst=('l', .85), ssize=2.0)
@@ -299,7 +274,6 @@ W([nor_t['out'], (tapc['en'].x, nor_t['out'].y), tapc['en']], 'sig')
 S.text(132, nor_t['out'].y - 1.0, 'tap_en', size=2.1, anchor='middle', italic=True, color=C_SIG)
 comb(80, 82, [tapc], up=False)
 
-# =========================================================================== 4 · memorias
 XPOS, XNAD, XRR, XCR = 270, 276, 282, 286
 bin_ = S.box(292, 208, 80, 54, 'BRAM_IN', '65 536 × 8 b · lectura síncrona (1 ciclo)',
              fill=F_MEM, pins=[('we', 'l', .14, 'WE'), ('wa', 'l', .36, 'WADDR'), ('ra', 'l', .62, 'RADDR'),
@@ -314,14 +288,12 @@ W([bin_['do'], (384, bin_['do'].y), (384, m_src['p0'].y), m_src['p0']], 'bus', w
 S.text(378, bin_['do'].y + 3.2, 'dout_in', size=2.1, anchor='middle', italic=True)
 W([btmp['do'], (384, btmp['do'].y), (384, m_src['p1'].y), m_src['p1']], 'bus', width=8, wfrac=0.5)
 S.text(378, btmp['do'].y + 3.2, 'dout_tmp', size=2.1, anchor='middle', italic=True)
-# pos -> WADDR
 W([(XP, YPOS), (XPOS, YPOS)], 'bus', width=16, wfrac=0.84, arrow=False, net='pos', dots=[(XP, YPOS)])
 S.text(266, YPOS - 1.0, 'pos', size=2.4, anchor='middle', italic=True)
 W([(XPOS, bin_['wa'].y), (XPOS, btmp['wa'].y)], 'bus', arrow=False, net='pos', dots=[(XPOS, YPOS)])
 W([(XPOS, bin_['wa'].y), bin_['wa']], 'bus', net='pos')
 W([(XPOS, btmp['wa'].y), btmp['wa']], 'bus', net='pos')
 S.dot(XPOS, btmp['wa'].y)
-# ch = pos[1:0] -> NOR del bloque 2
 YNOR3 = nor['ins'][2].y
 W([(X_CH, YPOS), (X_CH, YNOR3 + 4.5)], 'bus', width=2, wfrac=0.18, arrow=False, net='pos', dots=[(X_CH, YPOS)])
 S.text(X_CH + 1.4, 120, 'ch = pos[1:0]', size=2.1, italic=True, rot=-90)
@@ -330,24 +302,18 @@ W([(X_CH + 0.9, nor['ins'][1].y), nor['ins'][1]], 'sig', arrow=False)
 W([(X_CH + 0.9, YNOR3), nor['ins'][2]], 'sig', arrow=False)
 S.text(X_CH + 4.4, nor['ins'][1].y - 0.4, '[1]', size=1.8, color='#444')
 S.text(X_CH + 4.4, YNOR3 + 2.4, '[0]', size=1.8, color='#444')
-# wr_in -> WE de BRAM_IN y OR_cnt
 W([(X_WR, YWR), (X_WR, bin_['we'].y), bin_['we']], 'sig', dots=[(X_WR, or_cnt['ins'][1].y)], net='wr_in')
 W([(X_WR, or_cnt['ins'][1].y), or_cnt['ins'][1]], 'sig', net='wr_in')
-# noisy -> DIN
 W([m_nz['out'], (412, m_nz['out'].y), (412, 186), (bin_['din'].x, 186), bin_['din']], 'bus', width=8,
   wpos=1, wfrac=0.22)
 S.text(414, 160, 'noisy', size=2.4, italic=True)
-# rx_data -> MUX de ruido
 W([srx['q'], m_nz['p0']], 'bus', width=8, wfrac=0.3, name='rx_data', npos=0, nfrac=0.18, nsize=2.4)
-# naddr -> RADDR
 YNAD = 392
 W([(XN, YNB), (XN, YNAD), (XNAD, YNAD), (XNAD, bin_['ra'].y), bin_['ra']], 'bus', width=16, wpos=1,
   wfrac=0.45, net='naddr', dots=[(XNAD, btmp['ra'].y)])
 S.text(258, YNAD - 1.0, 'naddr', size=2.4, anchor='middle', italic=True)
 W([(XNAD, btmp['ra'].y), btmp['ra']], 'bus', net='naddr')
 
-# =========================================================================== 6 · MAC
-# v4.1: REG_PIX y REG_W (registro de segmentacion) antes del multiplicador
 reg_pix = S.box(434, 277, 14, 14, 'REG_PIX', '8 b', pins=[('d', 'l', .5, ''), ('q', 'r', .5, '')],
                 clk=('l', .85), tsize=2.3, ssize=2.0)
 reg_w = S.box(455, 297, 14, 12, 'REG_W', '8 b', pins=[('d', 'b', .5, ''), ('q', 't', .5, '')],
@@ -386,7 +352,6 @@ S.text(acc_r['clr'].x + 1.4, 312.5, 'acc_clr', size=2.0, italic=True, color=C_SI
 comb(acc_r['clk'].x, acc_r['rst'].x, [acc_r], up=False)
 comb(428, None, [reg_pix, reg_w], up=False)
 
-# =========================================================================== 7 · post-procesamiento
 div = S.op(554, acc_r['q'].y, '/')
 k16 = S.const(554, acc_r['q'].y + 11, '16')
 W([k16['t'], div['b']], 'bus')
@@ -425,7 +390,6 @@ YY = m_c2['out'].y
 W([m_c2['out'], (701, YY)], 'bus', width=8, wfrac=0.17, dots=[(664, YY)], net='y')
 S.text(670, YY - 1.0, 'y', size=2.6, anchor='middle', italic=True, weight='bold')
 
-# =========================================================================== 8 · UART TX
 XM = 704
 srt = S.box(722, 262, 36, 34, 'SR_TX', 'desplaz. 10 b · SI = 1',
             pins=[('d', 'l', (YY - 262) / 34, 'D'), ('ld', 'l', .5, 'LOAD'), ('sh', 't', .75, 'SH'),
@@ -468,7 +432,6 @@ txp = S.port_out(806, srt['q'].y, 'UART_RXD_OUT', size=2.4)
 W([srt['q'], txp], 'sig', name='tx', npos=0, nfrac=0.4)
 comb(708, 710, [baudt, srt, bitt], up=False)
 
-# =========================================================================== 9 · control
 mode = S.box(300, 412, 28, 18, 'MODE', 'registro 3 b',
              pins=[('d', 'l', .5, 'D'), ('en', 't', .75, 'EN'), ('q', 'r', .5, 'Q')],
              clk=('t', .18), rst=('t', .38), ssize=1.9, title_dy=1.0)
@@ -477,7 +440,7 @@ fsm = S.box(300, 444, 40, 32, 'FSM', 'Moore · estado 2 b',
                   ('st', 'r', .5, 'state')],
             clk=('t', .15), rst=('t', .3), ssize=2.0, title_dy=-1.5)
 XDEC, WDEC = 356, 62
-X_TW = 362.0                                    # WE de BRAM_TMP
+X_TW = 362.0
 dec = S.box(XDEC, 412, WDEC, 60, 'DECODIFICADOR', 'tabla de verdad: arriba a la derecha', fill=F_ROM,
             pins=[('mode', 'l', (421 - 412) / 60, 'mode'), ('st', 'l', (460 - 412) / 60, 'state'),
                   ('idle', 't', (358.5 - XDEC) / WDEC, ''), ('tw', 't', (X_TW - XDEC) / WDEC, ''),
@@ -488,14 +451,11 @@ dec = S.box(XDEC, 412, WDEC, 60, 'DECODIFICADOR', 'tabla de verdad: arriba a la 
 S.text(358.5, 410.6, 'idle', size=1.9, anchor='end', color='#222')
 S.text(X_TW + 0.8, 410.6, 'tmp_wr', size=1.9, color='#222')
 S.text(395.75 + 0.8, 410.6, 'src_tmp', size=1.9, color='#222')
-# puertos (pines fisicos distintos dibujados donde se usan)
 sw20 = S.port_in(256, mode['d'].y, 'SW[2:0]')
 W([sw20, mode['d']], 'busc', width=3, wfrac=0.82)
 btn = S.port_in(266, fsm['btn'].y, 'BTNC')
 W([btn, fsm['btn']], 'sig')
-# fin -> FSM
 W([(X_FIN, YF), (X_FIN, fsm['fin'].y), fsm['fin']], 'sig', net='fin')
-# mode / state -> decodificador y LEDs
 W([mode['q'], dec['mode']], 'busc', width=3, wfrac=0.75, dots=[(338, mode['q'].y)], net='mode')
 S.text(343, mode['q'].y - 1.0, 'mode', size=2.2, anchor='middle', italic=True, color=C_SIG)
 W([fsm['st'], dec['st']], 'busc', width=2, wfrac=0.75, dots=[(346, fsm['st'].y)], net='state')
@@ -508,25 +468,20 @@ W([(346, fsm['st'].y), (346, YL76), l76], 'busc', net='state', width=2, wpos=1, 
 W([(338, mode['q'].y), (338, YL20), l20], 'busc', net='mode', width=3, wpos=1, wfrac=0.5)
 k000 = S.const(338, YL53, '000')
 W([k000['r'], l53], 'bus', width=3, wfrac=0.5)
-# two_pass -> FSM
 W([dec['tp'], (dec['tp'].x, 482), (fsm['tp'].x, 482), fsm['tp']], 'sig', net='tp')
-# idle -> pista del corredor (AND_wr, NOR de tap_en) y EN de MODE
 YIDL = 398.6
 W([dec['idle'], (dec['idle'].x, YIDL), (X_IDLE, YIDL), (X_IDLE, and_wr['i1'].y)], 'sig', net='idle',
   name='idle', npos=1, nfrac=0.75, dots=[(mode['en'].x, YIDL), (X_IDLE, YIDL)])
 W([(mode['en'].x, YIDL), mode['en']], 'sig', net='idle')
 W([(X_IDLE, YIDL), (X_IDLE, nor_t['ins'][1].y), nor_t['ins'][1]], 'sig', net='idle')
-# tmp_wr -> WE de BRAM_TMP ; src_tmp -> MUX_SRC
 W([dec['tw'], btmp['we']], 'sig', net='tw')
 W([dec['src'], m_src['sel']], 'sig', net='src')
 S.text(397.0, 365.0, 'src_tmp', size=2.1, italic=True, color=C_SIG, rot=-90)
 S.text(X_TW + 1.2, 375.0, 'we_tmp = tmp_wr', size=2.1, italic=True, color=C_SIG, rot=-90)
-# ksel -> ROM_W ; absm -> MUX_A
 W([dec['ksel'], (romw['k'].x, dec['ksel'].y), romw['k']], 'busc', width=2, wpos=0, wfrac=0.5, net='ksel')
 S.text(440, dec['ksel'].y - 1.0, 'ksel', size=2.2, anchor='middle', italic=True, color=C_SIG)
 W([dec['absm'], (m_a['sel'].x, dec['absm'].y), m_a['sel']], 'sig', net='absm')
 S.text(520, dec['absm'].y - 1.0, 'absm', size=2.2, anchor='middle', italic=True, color=C_SIG)
-# AND_go (hacia arriba): go = at11 · ~tx_busy
 and_go = S.gate('and', 470 - 4.5, 506 - 4, n=2, h=8, rot='u', name=None)
 S.text(and_go['out'].x + 5.5, and_go['out'].y + 6.0, 'AND_go', size=2.0, color='#666')
 S.text(440, 518.0, 'at11', size=2.2, anchor='middle', italic=True, color=C_SIG)
@@ -537,9 +492,7 @@ W([(XNB, n_tb['out'].y), (XNB, YB), (and_go['i1'].x, YB), and_go['i1']], 'sig', 
 YGO = 490
 W([and_go['out'], (and_go['out'].x, YGO), (X_GO, YGO), (X_GO, or_cnt['ins'][0].y), or_cnt['ins'][0]], 'sig',
   net='go', name='go', npos=1, nfrac=0.3, dots=[(and_go['out'].x, YGO), (X_GO, 412)])
-# go -> CLR del TAP
 W([(X_GO, 412), (tapc['clr'].x, 412), tapc['clr']], 'sig', net='go')
-# NOT de tmp_wr y AND de tx_start
 n_tw = S.gate('not', 640, dec['tw2'].y - 2.5)
 W([dec['tw2'], n_tw['i0']], 'sig', net='tw')
 and_tx = S.gate('and', 690, 468, n=2, h=8)
@@ -550,7 +503,6 @@ W([and_tx['out'], (715, and_tx['out'].y), (715, srt['ld'].y), srt['ld']], 'sig',
   dots=[(715, bitt['ld'].y)])
 W([(715, bitt['ld'].y), bitt['ld']], 'sig', net='txs')
 S.text(716.5, 452, 'tx_start', size=2.2, italic=True, color=C_SIG, rot=-90)
-# reloj/reset de MODE y FSM: desde los rieles del bloque 4
 XC9, XR9 = 286, 282
 W([(XC9, CLKY), (XC9, 440)], 'clk', arrow=False, net='CLK')
 W([(XR9, RSTY), (XR9, 438)], 'rst', arrow=False, net='RST')
@@ -564,19 +516,14 @@ S.dot(XC9, 408, C_CLK); S.dot(XR9, 406, C_RST)
 W([(XC9, 440), (fsm['clk'].x, 440), fsm['clk']], 'clk', arrow=False, net='CLK')
 W([(XR9, 438), (fsm['rst'].x, 438), fsm['rst']], 'rst', arrow=False, net='RST')
 
-# =========================================================================== conexiones entre bloques restantes
-# y -> DIN de BRAM_TMP (realimentacion para la 2.a pasada del LoG)
 YFB = 383
 W([(664, YY), (664, YFB), (btmp['din'].x, YFB), btmp['din']], 'bus', width=8, wpos=1, wfrac=0.45, net='y')
 S.text(600, YFB - 1.0, 'y (realimentación a BRAM_TMP)', size=2.2, anchor='middle', italic=True)
-# tap -> ROM_W
 W([(XTJ, YTAP), (romw['t'].x, YTAP), romw['t']], 'bus', width=4, wfrac=0.55, net='tap')
 S.text(420, YTAP - 1.0, 'tap', size=2.3, anchor='middle', italic=True)
-# tap -> comparador "= 0" (acc_clr)
 W([(romw['t'].x, YTAP), (c0['b'].x, YTAP), c0['b']], 'bus', net='tap')
 S.dot(romw['t'].x, YTAP)
 
-# =========================================================================== tablas (arriba a la derecha)
 def table(x, y, cols, rows, cw, rh=4.0, title=None, size=2.25, head_fill='#e6e6e6', fills=None):
     if title:
         S.text(x, y - 1.6, title, size=2.7, weight='bold')
@@ -605,7 +552,6 @@ def table(x, y, cols, rows, cw, rh=4.0, title=None, size=2.25, head_fill='#e6e6e
 
 
 S.frame(430, 30, 401, 140, 'Contenido de las ROM, decodificador y FSM (mismos valores que el código)', 'T')
-# ROM_W
 KG = [1, 2, 1, 2, 4, 2, 1, 2, 1]
 KL = [0, 16, 0, 16, -64, 16, 0, 16, 0]
 KI = [0, 0, 0, 0, 16, 0, 0, 0, 0]
@@ -622,7 +568,6 @@ table(436, 46, ['tap', 'vecino', 'G 00', 'L 01', 'ID 10', 'US 11'], rows, [9, 15
 S.text(436, 100.0, 'fila t = peso del píxel que sale de la BRAM en el tap t', size=2.0, color='#444')
 S.text(436, 103.3, '(pedido en t − 1); REG_PIX y REG_W lo pasan al ACC en t + 1', size=2.0, color='#444')
 S.text(436, 99.5 + 0 * 4.2 + 40, '', size=1)
-# ROM_OFF
 rows = []
 for t in range(12):
     dr, dc = OFF[t] if t <= 8 else (0, 0)
@@ -630,7 +575,6 @@ for t in range(12):
 table(530, 46, ['tap', 'dr', 'dc', 'dr dc'], rows, [9, 9, 9, 15], rh=3.9, title='ROM_OFF[tap]')
 S.text(530, 100.0, 'taps 9, 10 y 11 = centro', size=2.0, color='#444')
 S.text(530, 103.3, '−1 = 11, 0 = 00, +1 = 01', size=2.0, color='#444')
-# kernels (matrices 3x3)
 def kmat(x, y, name, K, note):
     S.text(x, y - 1.6, name, size=2.5, weight='bold')
     for i in range(9):
@@ -647,7 +591,6 @@ kmat(569, 112, 'Unsharp ×16', KU, '= 32·δ − G ÷16')
 S.text(470, 140.5, 'LoG = 2 pasadas: G (BRAM_IN → BRAM_TMP) y luego L (BRAM_TMP → UART).', size=2.1)
 S.text(470, 144.0, 'Todos los pesos ×16 → la normalización es siempre ÷16 = acc[14:4] (cables).', size=2.1)
 S.text(470, 147.5, 'US: 2·I − G = (32·I − 16·G)/16 → un solo kernel; recorte a 0..255.', size=2.1)
-# decodificador
 rows = [['IDLE', 'x xx', '—', '—', 0, 0, 1, '—'],
         ['P1', '0 00 (G)', '00', 0, 0, 0, 0, 0],
         ['P1', '0 01 (L)', '01', 1, 0, 0, 0, 0],
@@ -658,7 +601,6 @@ rows = [['IDLE', 'x xx', '—', '—', 0, 0, 1, '—'],
 table(606, 46, ['state', 'MODE', 'ksel', 'absm', 'src_tmp', 'tmp_wr', 'idle', 'two_pass'], rows,
       [11, 17, 9, 9, 13, 12, 9, 15], rh=4.4, title='DECODIFICADOR (combinacional)')
 S.text(606, 85.5, 'two_pass = (MODE = 010) · idle = (state = 00) · tx_start = go·¬tmp_wr', size=2.05)
-# FSM: diagrama de estados
 def state_c(x, y, name, code):
     S.circle(x, y, 7.2, fill=F_SEQ, sw=0.4)
     S.text(x, y + 0.2, name, size=2.6, anchor='middle', weight='bold')
@@ -677,7 +619,6 @@ def arc(p, q, bend, label, ldy=0, ldx=0):
     mx, my = (p[0] + q[0]) / 2, (p[1] + q[1]) / 2 + bend
     S.add('elem', f'<path d="M{p[0]:.2f},{p[1]:.2f} Q{mx:.2f},{my:.2f} {q[0]:.2f},{q[1]:.2f}" fill="none" '
                   f'stroke="#000" stroke-width="0.35"/>')
-    # punta de flecha
     import math
     ang = math.atan2(q[1] - my, q[0] - mx)
     L, Wd = 2.0, 0.85
@@ -697,7 +638,6 @@ S.text(606, 154.0, 'P1: 1.ª pasada (G, L, US o bypass → UART; en LoG: G → B
 S.text(606, 157.5, 'P2: solo LoG: L sobre BRAM_TMP → UART. fin = último byte entregado.', size=2.05)
 S.text(606, 161.0, 'MODE copia SW[2:0] en IDLE y queda congelado en P1/P2.', size=2.05)
 
-# =========================================================================== leyenda
 LX, LY = 12, 470
 S.rect(LX, LY, 208, 114, fill='#fbfbfb', stroke='#7a7a7a', sw=0.4, dash='2.2,1.2', layer='frame')
 S.text(LX + 3, LY + 6.5, 'Cómo leer esta hoja', size=4.0, weight='bold', color='#303030')
@@ -744,7 +684,6 @@ S.text(LX + 4, yy, 'Solo los pines de la FPGA son pentágonos. No hay etiquetas 
 S.text(LX + 4, yy + 4.2, 'cada señal se sigue por su cable, de la salida que la produce a cada entrada.', size=2.4)
 S.text(LX + 4, yy + 8.4, 'Las tablas «T» muestran el contenido de las ROM y del decodificador.', size=2.4)
 
-# =========================================================================== bloque de titulo
 TX, TY = 560, 530
 S.rect(TX, TY, 271, 54, fill='#ffffff', stroke='#303030', sw=0.5, layer='frame')
 S.line(TX, TY + 14, TX + 271, TY + 14, color='#303030', sw=0.3, layer='frame')
