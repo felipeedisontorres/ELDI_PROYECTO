@@ -19,7 +19,7 @@ _Estado al 24 de noviembre de 2026._
 | R-G06 | Esquemático detallado con bloques funcionales (memorias, máquina de estados, registros, sumadores, multiplexores, contadores…) y el ancho de cada bus | Esquemático v4.1 en una sola hoja A1, con todos los cables dibujados (`docs/esquematico/`) | ✔ |
 | R-G07 | Mostrar avance en cada sesión de laboratorio | Avances de los miércoles (el historial está en `03_decisiones.md`) | Continuo |
 | R-G08 | Documentar todo uso de IA: cómo, para qué y qué código generó | [`AI_USAGE.md`](../AI_USAGE.md) | ✔ |
-| R-G09 | Informe final de 6 páginas en plantilla IEEE (Institute of Electrical and Electronics Engineers), en PDF: introducción, solución y metodología, configuración experimental, resultados experimentales, conclusiones y referencias (máximo 10) | Informe aparte, en PDF | Falta subirlo a `docs/informe/` |
+| R-G09 | Informe final de 6 páginas en plantilla IEEE (Institute of Electrical and Electronics Engineers), en PDF: introducción, solución y metodología, configuración experimental, resultados experimentales, conclusiones y referencias (máximo 10) | Informe aparte, en PDF | ✔ |
 | R-G10 | El proyecto debe estar en GitHub, con los dos estudiantes como colaboradores | Este repositorio | Falta confirmar en GitHub (Settings → Collaborators) que Juan esté como colaborador |
 | R-G11 | README que explique cómo reproducir el proyecto | [`README.md`](../README.md) | ✔ |
 | R-G12 | Enviar el enlace del repositorio el día antes de la evaluación | Martes 24 de noviembre | Se envía el 24 de noviembre |
