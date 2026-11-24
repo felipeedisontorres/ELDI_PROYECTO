@@ -29,12 +29,16 @@ defenderla.
   [`docs/03_decisiones.md`](docs/03_decisiones.md)).
 - Manejamos la tarjeta en la prueba (interruptores, botones e imágenes).
 - Estudiamos el diseño bloque por bloque para la sustentación.
+- Generar el cidigo a partir de la presenctacion, tematicas vistas en clase  y ayuda de la IA
+- 
 
 **La IA:**
 - Propuso alternativas para las decisiones y nos explicó cada bloque con ejemplos.
-- Generó el código a partir de lo que le pedimos: los módulos de `rtl/`, las pruebas de `tb/`, los scripts de
-  `sim/`, `python/` y `vivado/`, y los pines de `constraints/`, que copió del archivo oficial de Digilent.
-- Dibujó el esquemático y redactó la explicación bloque por bloque, el README y los documentos de `docs/`.
+- : los módulos de `rtl/`, las pruebas de `tb/`, los scripts de
+  `sim/`, `python/` y `vivado/`, y los pines de `constraints/`, 
+-  redactó la explicación bloque por bloque
+-  Subió simulaciones y archivos al repositorio
+-  Corrigió errores de código dentro de viviado
 
 ## Cómo se comprobó el código
 
