@@ -3,7 +3,7 @@
 Proyecto final de Electrónica Digital (ELDI), Escuela Colombiana de Ingeniería, 2026-2.
 Es el proyecto #8 de la lista del curso: *Image Processor (2D filters)*.
 
-Lo hicimos **Edison Torres** y **Juan Guaman**.
+ **Edison Torres** y **Juan Guaman**.
 
 ## La idea en pocas palabras
 
@@ -162,54 +162,6 @@ Interruptor arriba es 1 y abajo es 0. Por ejemplo, "SW1 y SW0 = 10" quiere decir
 La tarjeta lee los interruptores mientras está esperando. Cuando empieza a procesar, el modo queda fijo hasta
 que termina.
 
-## Cómo probarlo sin la tarjeta (simulación)
-
-Cada bloque del diseño tiene su propio *testbench*: un programa de prueba que le pone entradas al bloque y
-revisa solo, ciclo por ciclo, que las salidas sean las correctas. Al final cada uno escribe PASS (pasó) o
-FAIL (falló), así que no hace falta mirar las ondas para saber si funciona.
-
-**En Vivado**, después del paso 2: **Flow Navigator → Run Simulation → Run Behavioral Simulation**. La
-simulación corre sola hasta el final y en la Tcl Console debe aparecer:
-
-```
-TB tb_image_proc_top (W=8, CPB=8): 4441 verificaciones, 0 errores -> PASS
-```
-
-Es la prueba del sistema completo con una imagen chiquita de 8 × 8, para que tarde segundos y no minutos.
-
-**Con Icarus Verilog** (Linux, macOS o WSL), desde la carpeta del repositorio:
-
-```
-sudo apt install iverilog gtkwave
-bash sim/run_all.sh
-```
-
-La primera línea instala los programas en Ubuntu o WSL y solo se hace una vez. La segunda corre las 10 pruebas
-(una por bloque más la del sistema completo) y debe terminar en `TODOS LOS TESTBENCHES: PASS`.
-
-**Con la imagen completa de 128 × 128** (tarda unos 5 minutos):
-
-```
-cd sim/full
-iverilog -g2012 -s tb_image_proc_top -o full.vvp -P tb_image_proc_top.LOG_W=7 -P tb_image_proc_top.FULL=1 ../../rtl/*.sv ../../tb/tb_image_proc_top.sv
-vvp full.vvp
-python3 hex2png.py out_*.hex
-```
-
-La simulación guarda la salida de cada modo en archivos `out_*.hex`, y la última línea los convierte en
-imágenes `.png` para poder verlas.
-
-**Formas de onda**, para ver las señales por dentro:
-
-```
-cd sim/wave
-iverilog -g2012 -s tb_wave -o wave.vvp ../../rtl/*.sv tb_wave.sv
-vvp wave.vvp
-gtkwave wave.vcd
-```
-
-En vez de GTKWave también sirve `python3 plot_wave.py wave.vcd .`, que dibuja las mismas señales que salen en
-las figuras de la explicación.
 
 ## Cómo funciona por dentro
 
