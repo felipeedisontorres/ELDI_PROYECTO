@@ -4,20 +4,17 @@
 - **IA:** Claude (Anthropic), en un proyecto de claude.ai llamado "ELDI-FINAL".
 - **Material que le dimos:** los requisitos del curso (`Projects-Proposals.pdf`, `Requrimientos Minimos parte 2.pdf`),
   las diapositivas del curso (1 a 10) y la guía del profesor `5_Implementacion_Operaciones_Puntuales.pdf`.
-- **Acceso al computador:** en las sesiones del 17, 18, 23 y 24 de noviembre le dimos permiso para usar el
-  computador de Edison: instalar Vivado y las librerías de Python, ejecutar comandos en la consola Tcl de
-  Vivado, el 23 de noviembre programar la tarjeta y correr la prueba con ella, y el 24 de noviembre copiar al
-  repositorio el script y las imágenes de esa prueba.
+
 
 ## 2. Reglas que le pusimos
 
-Le pedimos actuar como tutor y co-diseñador con estas reglas (texto completo en la sección 6):
+Le pedimos actuar como tutor y co-diseñador con estas reglas :
 
 1. Usar solo temas vistos en las presentaciones del curso y avisar si algo se sale de ellas.
 2. Citar el requisito (R-xx) que respalda cada propuesta.
 3. No inventar requisitos, datasheets ni números de pin: los pines salen del XDC maestro oficial de Digilent.
 4. Explicar paso a paso, con alternativas y ventajas y desventajas, para que podamos entender y defender el diseño.
-5. Si hay ambigüedad entre requisitos, no decidir por nosotros sino redactar la pregunta para el profesor.
+
 
 ## 3. Registro por fecha
 
